@@ -1,6 +1,22 @@
 ---
-title: Topic modeling and homology between the spaces of positions and position-takings
+title: Topic modeling and homology between the spaces of positions and position-takings <!--# or between discourses? anyway, a working title -->
 author:   
   - Pierre Benz
   - Radim Hladík
+strip-comments: true
 ---
+
+<!--# 
+R:
+- feel free to rewrite anything, i have no attachment to my words (besides, everything is versioned and buried in git history)
+- at this point this is more or less just notes from today's discussion
+-->
+
+Topic modeling is a suite of information retrieval algorithms that has become popular in sociological applications.
+As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a limited set of topics, or distributions over vocabulary, which are typically interpretable by domain experts.
+In our contribution, we want to highlight another, often overlooked, feature of topic models, namely the representation of documents as distributions over topics.
+This quality imbues topic models with an intrinsically relational character.
+We argue that sociological appropriation of topic models should shift its focus from interpreting or discovering particular topics to the analysis of structure of discourse that surfaces in the latent topic space.
+The relationality of topic models empowers sociologists to study how different linguistic markets create symbolic values and structure them according to their specific logic.
+Topic models are therefore useful tools for examining homologies between discursive and social dimensions of fields, or between different discursive spaces.
+We will demonstrate the sociological potential of topic models to uncover homological structures with examples from the scientific field.
