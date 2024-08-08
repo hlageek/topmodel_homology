@@ -1,0 +1,6 @@
+---
+title: Topic modeling and homology between the spaces of positions and position-takings
+author:   
+  - Pierre Benz
+  - Radim Hladík
+---
