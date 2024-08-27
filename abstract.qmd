@@ -3,6 +3,7 @@ title: Topic modeling and homology between the spaces of positions and position-
 author:   
   - Pierre Benz
   - Radim Hladík
+  - Yann Renisio
 strip-comments: true
 ---
 
@@ -10,6 +11,28 @@ strip-comments: true
 R:
 - feel free to rewrite anything, i have no attachment to my words (besides, everything is versioned and buried in git history)
 - at this point this is more or less just notes from today's discussion
+-->
+
+
+<!--# 
+P:
+- Here is a first draft for an abstract. Please commit and change everything ;)
+-->
+
+Topic modeling is a suite of information retrieval algorithms that has become popular in sociological applications. 
+Various techniques covering Bayesian inference, network-based co-wording and deep learning-based embeddings have flourished in recent literature. 
+Despite the widespread adoption of topic models for semi-automatic labeling, there is a notable scarcity of studies that approach this method from a sociological perspective. 
+As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a limited set of topics, or distributions over vocabulary, which are typically interpretable by domain experts. 
+Based on this operational definition, studies tend to use topic modeling with a focus on interpreting or discovering particular topics. 
+Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. 
+By highlighting this, often overlooked, feature of topic models, namely the representation of documents as distribution over topics, we aim to emphasize the intrinsically relational character of topic models. 
+The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures.
+Thus, we will aim to demonstrate how topic models are useful tools for examining homologies between discursive and social dimensions of fields, or between different discursive spaces, with empirical evidence from the scientific field. 
+More broadly, we will emphasize the relationality of topic models, and the way it empowers sociologists to study how different linguistic markets create symbolic values and structure them according to their specific logic.
+
+<!--# 
+P:
+- These are our brainstorm ideas
 -->
 
 Topic modeling is a suite of information retrieval algorithms that has become popular in sociological applications.
