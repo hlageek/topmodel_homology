@@ -51,3 +51,8 @@ rsconnect/
 # Quarto
 *_files/
 *.html
+abstract.log
+abstract.tex
+
+/.luarc.json
+abstract.pdf

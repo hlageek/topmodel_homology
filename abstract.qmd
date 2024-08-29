@@ -1,11 +1,23 @@
 ---
 title: "Engaging with homologies in discourses: towards a sociological appropriation of topic models"
-author:   
-  - Pierre Benz
-  - Radim Hladík
-  - Yann Renisio
+author:
+  - name: Pierre Benz
+    affiliation:
+      - name: Montreal
+  - name: Radim Hladík
+    affiliation:
+      - name: Institute of Philosophy of the Czech Academy of Sciences
+    email: hladik@flu.cas.cz 
+  - name: Yann Renisio
+    affiliation:
+      - name: "CNRS / Sciences-Po"
 strip-comments: true
-format: pdf
+format: 
+  pdf:
+    keep-tex: true
+  html: default
+filters:
+  - authors-block
 ---
 
 Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications.
