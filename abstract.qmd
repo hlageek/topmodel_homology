@@ -3,7 +3,8 @@ title: "Engaging with homologies in discourses: towards a sociological appropria
 author:
   - name: Pierre Benz
     affiliation:
-      - name: Montreal
+      - name: School of Library and Information Science, University of Montreal
+    email: pierre.benz@umontreal.ca 
   - name: Radim Hladík
     affiliation:
       - name: Institute of Philosophy of the Czech Academy of Sciences
