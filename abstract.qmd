@@ -4,15 +4,18 @@ author:
   - name: Pierre Benz
     affiliation:
       - name: School of Library and Information Science, University of Montreal
-    email: pierre.benz@umontreal.ca 
+    email: pierre.benz@umontreal.ca
+    corresponding: true 
   - name: Radim Hladík
     affiliation:
       - name: Institute of Philosophy of the Czech Academy of Sciences
-    email: hladik@flu.cas.cz 
+    email: hladik@flu.cas.cz
+    corresponding: true 
   - name: Yann Renisio
     affiliation:
       - name: "Research Center on Social Inequalities, CNRS & Sciences Po"
     email: yann.renisio@cnrs.fr
+    corresponding: true
 strip-comments: true
 format: 
   pdf:
