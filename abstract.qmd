@@ -11,7 +11,8 @@ author:
     email: hladik@flu.cas.cz 
   - name: Yann Renisio
     affiliation:
-      - name: "CNRS / Sciences-Po"
+      - name: "Research Center on Social Inequalities, CNRS & Sciences Po"
+    email: yann.renisio@cnrs.fr
 strip-comments: true
 format: 
   pdf:
