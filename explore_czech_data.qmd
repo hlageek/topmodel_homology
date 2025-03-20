@@ -1,0 +1,91 @@
+---
+title: "Exploration of Czech data"
+---
+
+This is intended as an exploration of the dataset published in Poetics. The dataset could be used for comparison of disciplines and the general scientific field. 
+
+```{r}
+lapply(list.files(here::here("R"), full.names = T), source)
+lib_require("tidyverse")
+lib_require("here")
+lib_require("arrow")
+```
+
+For simplicity's sake, I am downloading an already calculated PCA projection of individuals. One thing to note is that this data object only contains 10 PC components. It would have been better to use all PCs, but for exploration, this should be enough. 
+
+```{r}
+pca_data <- list(
+  source = "https://owncloud.cesnet.cz/index.php/s/JHZrStMPTtQcd8F/download",
+  path = here::here("data", "pca_projection.RDS")
+)
+data_require(pca_data)  
+pca_projection <- as_tibble(readRDS(pca_data$path))
+```
+
+```{r}
+pca_data <- list(
+  source = "https://owncloud.cesnet.cz/index.php/s/JHZrStMPTtQcd8F/download",
+  path = here::here("data", "pca_projection.RDS")
+)
+data_require(pca_data)  
+pca_projection <- as_tibble(readRDS(pca_data$path))
+```
+
+```{r}
+sub_pca <- pca_projection |> 
+select(freq_ford, starts_with("PC")) |> 
+nest(mat = starts_with("PC")) |> 
+mutate(pca = map(mat, prcomp)) |> 
+mutate(axis1 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC1
+  c(x_coord = rotation_matrix[, 1][1], y_coord = rotation_matrix[, 1][2])
+}),
+axis2 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC2
+  c(x_coord = rotation_matrix[, 2][1], y_coord = rotation_matrix[, 2][2])
+}))
+```
+
+```{r}
+plot_data <- sub_pca |>
+  select(freq_ford, axis1, axis2) |>
+  unnest_longer(starts_with("axis")) |>
+  pivot_wider(names_from = c(axis1_id, axis2_id),
+              values_from = c(axis1, axis2)) |>
+  rename("axis1_x" = 2, "axis1_y" = 3, "axis2_x" = 4, "axis2_y" = 5) |>
+  # need some rotation here
+  mutate(
+    # First check if we need to flip the first axis
+    flip_axis1 = axis1_x < 0,
+    # Apply the flip to axis1 if needed
+    axis1_x = ifelse(flip_axis1, -axis1_x, axis1_x),
+    axis1_y = ifelse(flip_axis1, -axis1_y, axis1_y),
+    # Also flip axis2 if axis1 was flipped (to maintain their relationship)
+    axis2_x = ifelse(flip_axis1, -axis2_x, axis2_x),
+    axis2_y = ifelse(flip_axis1, -axis2_y, axis2_y),
+    # Now ensure axis2 is perpendicular in the right direction
+    # If the cross product is negative, flip axis2
+    cross_product = axis1_x * axis2_y - axis1_y * axis2_x,
+    axis2_x = ifelse(cross_product < 0, -axis2_x, axis2_x),
+    axis2_y = ifelse(cross_product < 0, -axis2_y, axis2_y)
+  ) |>
+  select(-flip_axis1, -cross_product)  # Remove helper columns
+```
+
+
+```{r}
+plot_data |> 
+ggplot(aes(x = 0, y = 0)) +
+  geom_segment(aes(xend = axis1_x, yend = axis1_y), 
+  arrow = arrow(), 
+  color = "red",
+  size = 1) +
+    geom_segment(aes(xend = axis2_x, yend = axis2_y), 
+  arrow = arrow(), 
+  color = "blue",
+  size = 1) +
+  facet_wrap(~freq_ford) +
+  theme_minimal() 
+```

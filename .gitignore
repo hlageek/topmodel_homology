@@ -56,3 +56,5 @@ abstract.tex
 
 /.luarc.json
 abstract.pdf
+*.qs
+*.RDS
