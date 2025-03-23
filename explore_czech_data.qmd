@@ -337,11 +337,38 @@ scale_color_manual(values = c("TRUE" = "#4F4F4F", "FALSE" = "#C0C0C0")) +
       yend = mean_pc2 + axis2_y
     ),
     color = "blue", linewidth = 1) +
-theme(legend.position = "none") +
+    theme(legend.position = "none") +
 theme_minimal() +
 facet_wrap(~freq_ford)
 
-ggsave("plot.png", plot_all, width = 25, height = 15)
+ggsave("plot.png", plot_all, width = 18, height = 12, bg = "white")
     
+
+```
+
+```{r}
+unique(sub_pca$freq_ford)
+soc_pca <- sub_pca |> 
+filter(freq_ford == "Languages and Literature")
+
+pca_res <- soc_pca$pca[[1]]
+pca_res$rotation
+biplot(pca_res)
+soc_pca_df <- as_tibble(pca_res$x)  |> 
+mutate(vedidk =  pca_projection |> 
+filter(freq_ford == "Sociology") |> 
+pull(vedidk)
+	) |> 
+  left_join(pca_projection |> select(vedidk, id_helper, pubs_total, gender), by = "vedidk") |> 
+  filter(pubs_total > 10) 
+
+hc_in <- soc_pca_df |> select(starts_with("PC"))
+hc_res <- hclust(dist(hc_in))
+hc_res$labels <- soc_pca_df$id_helper
+plot(hc_res, cex = 0.6)
+plot_soc <-   soc_pca_df |> 
+ggplot(aes(x = PC1, y = PC2, label = id_helper, color = gender)) +
+  geom_text(check_overlap = T, size = 3)
+ggsave("plot_soc.png", plot_soc, width = 35, height = 20, bg = "white")
 
 ```
