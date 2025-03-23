@@ -22,305 +22,84 @@ data_require(pca_data)
 pca_projection <- as_tibble(readRDS(pca_data$path))
 ```
 
-```{r}
-pca_data <- list(
-  source = "https://owncloud.cesnet.cz/index.php/s/JHZrStMPTtQcd8F/download",
-  path = here::here("data", "pca_projection.RDS")
-)
-data_require(pca_data)  
-pca_projection <- as_tibble(readRDS(pca_data$path))
-```
+
+This is the tricky part of the code where we try to obtain the eigenvectors of the principal components of the sub-clouds as they would appear in the original set of coordinates. 
 
 ```{r}
 sub_pca <- pca_projection |> 
 select(freq_ford, starts_with("PC")) |> 
-nest(mat = starts_with("PC")) |> 
+rename_with(~ paste0("orig_", .x), starts_with("PC")) |> 
+nest(mat = starts_with("orig_PC")) |> 
 mutate(pca = map(mat, prcomp, scale = F)) |> 
 mutate(axis1 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
   # subcloud coordinates of PC1
-  c(x_coord = rotation_matrix[, 1][1], y_coord = rotation_matrix[, 1][2])
+  c(x_coord = rotation_matrix[1, 1], y_coord = rotation_matrix[2, 1])
 }),
 axis2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
   # subcloud coordinates of PC2
-  c(x_coord = rotation_matrix[, 2][1], y_coord = rotation_matrix[, 2][2])
+  c(x_coord = rotation_matrix[1, 2], y_coord = rotation_matrix[2, 2])
 }))
 ```
 
+Here we just transform the coordinates we have obtained above into some workable form. 
 ```{r}
 plot_data <- sub_pca |>
   select(freq_ford, axis1, axis2) |>
   unnest_longer(starts_with("axis")) |>
   pivot_wider(names_from = c(axis1_id, axis2_id),
               values_from = c(axis1, axis2)) |>
-  rename("axis1_x" = 2, "axis1_y" = 3, "axis2_x" = 4, "axis2_y" = 5) |>
-  # need some rotation here
-  mutate(
-    # First check if we need to flip the first axis
-    flip_axis1 = axis1_x < 0,
-    # Apply the flip to axis1 if needed
-    axis1_x = ifelse(flip_axis1, -axis1_x, axis1_x),
-    axis1_y = ifelse(flip_axis1, -axis1_y, axis1_y),
-    # Also flip axis2 if axis1 was flipped (to maintain their relationship)
-    axis2_x = ifelse(flip_axis1, -axis2_x, axis2_x),
-    axis2_y = ifelse(flip_axis1, -axis2_y, axis2_y),
-    # Now ensure axis2 is perpendicular in the right direction
-    # If the cross product is negative, flip axis2
-    cross_product = axis1_x * axis2_y - axis1_y * axis2_x,
-    axis2_x = ifelse(cross_product < 0, -axis2_x, axis2_x),
-    axis2_y = ifelse(cross_product < 0, -axis2_y, axis2_y)
-  ) |>
-  select(-flip_axis1, -cross_product)  # Remove helper columns
+  rename("axis1_x" = 2, "axis1_y" = 3, "axis2_x" = 4, "axis2_y" = 5) 
 ```
 
 
+Select disciplines to focus on.
+Get the means of disciplines and coordinates of all individuals 
+Merge everything together 
 
-```{r}
-plot_data2 <- plot_data |> 
-left_join(
-  pca_projection |> 
-select(freq_ford, freq_field) |> 
-distinct(freq_ford, .keep_all = TRUE) )
-# Order freq_ford based on the order of freq_field
-# First, ensure freq_field is a factor with the desired order
-plot_data2$freq_field <- factor(plot_data2$freq_field, levels = unique(plot_data2$freq_field))
-
-# Then, order freq_ford based on freq_field
-plot_data2$freq_ford <- factor(plot_data2$freq_ford, levels = plot_data$freq_ford[order(plot_data2$freq_field)])
-
-
-plot_data2 |> 
-ggplot(aes(x = 0, y = 0)) +
-  geom_segment(aes(xend = axis1_x, yend = axis1_y), 
-  color = "red",
-  size = 1) +
-    geom_segment(aes(xend = axis2_x, yend = axis2_y), 
-  color = "blue",
-  size = 1) +
-  facet_wrap(~freq_ford) +
-  theme_minimal() 
-```
-
-Try with disc means
 ```{r}
 # unique(plot_data$freq_ford)
-focal_disc <- "Clini"
-
-glob_plot <- pca_projection |>
-    mutate(econ = stringr::str_detect(freq_ford, focal_disc)) |>
-    arrange(econ) |> 
-    tidytable::filter(pubs_total >= 10) |>
-    ggplot(aes(PC1, PC2, color = econ)) +
-  scale_color_manual(values = c("FALSE" = "lightgrey", "TRUE" = "black")) +    geom_point(size = 0.1, alpha = 0.6)
-
-econ_means <- pca_projection |>
-    filter(stringr::str_detect(freq_ford, focal_disc))  |> 
-    select(PC1, PC2) |> 
-    summarise(mean_pc1 = mean(PC1), mean_pc2 = mean(PC2))
-plot_data_econ <- plot_data |> 
-    filter(stringr::str_detect(freq_ford, focal_disc))  
-
-```
-
-```{r}
-
-glob_plot +
-  # First axis - positive direction
-  geom_segment(data = plot_data_econ,
-    aes(
-      x = econ_means$mean_pc1,
-      y = econ_means$mean_pc2,
-      xend = (econ_means$mean_pc1 + plot_data_econ$axis1_x),
-      yend = (econ_means$mean_pc2 + plot_data_econ$axis1_y)
-    ),
-    color = "red",
-    size = 1) +
-  # First axis - negative direction
-  geom_segment(data = plot_data_econ,
-    aes(
-      x = econ_means$mean_pc1,
-      y = econ_means$mean_pc2,
-      xend = (econ_means$mean_pc1 - plot_data_econ$axis1_x),
-      yend = (econ_means$mean_pc2 - plot_data_econ$axis1_y)
-    ),
-    color = "red",
-    size = 1) +
-  # Second axis - positive direction
-  geom_segment(data = plot_data_econ,
-    aes(
-      x = econ_means$mean_pc1,
-      y = econ_means$mean_pc2,
-      xend = (econ_means$mean_pc1 + plot_data_econ$axis2_x),
-      yend = (econ_means$mean_pc2 + plot_data_econ$axis2_y)
-    ),
-    color = "blue",
-    size = 1) +
-  # Second axis - negative direction
-  geom_segment(data = plot_data_econ,
-    aes(
-      x = econ_means$mean_pc1,
-      y = econ_means$mean_pc2,
-      xend = (econ_means$mean_pc1 - plot_data_econ$axis2_x),
-      yend = (econ_means$mean_pc2 - plot_data_econ$axis2_y)
-    ),
-    color = "blue",
-    size = 1) +
-  theme_minimal()
-```
-
-```{r}
-# Calculate the current angle of your axis vectors
-axis1_angle <- atan2(plot_data_econ$axis1_y, plot_data_econ$axis1_x)
-axis2_angle <- atan2(plot_data_econ$axis2_y, plot_data_econ$axis2_x)
-
-# Global reference angles
-global_angle1 <- 0        # 0 degrees for x-axis
-global_angle2 <- pi/2     # 90 degrees for y-axis
-
-# Calculate individual rotation angles
-rotation_angle1 <- global_angle1 - axis1_angle
-rotation_angle2 <- global_angle2 - axis2_angle
-
-# Function to rotate a vector
-rotate_vector <- function(x, y, angle) {
-  x_rot <- x * cos(angle) - y * sin(angle)
-  y_rot <- x * sin(angle) + y * cos(angle)
-  return(list(x = x_rot, y = y_rot))
-}
-
-# Rotate each vector with its specific rotation angle
-axis1_rotated <- rotate_vector(plot_data_econ$axis1_x, plot_data_econ$axis1_y, rotation_angle1)
-axis2_rotated <- rotate_vector(plot_data_econ$axis2_x, plot_data_econ$axis2_y, rotation_angle2)
-
-# Use the rotated vectors in your plot
-glob_plot +
-  # First axis (rotated to align with x-axis)
-  geom_segment(
-    aes(
-      x = econ_means$mean_pc1 - axis1_rotated$x,
-      y = econ_means$mean_pc2 - axis1_rotated$y,
-      xend = econ_means$mean_pc1 + axis1_rotated$x,
-      yend = econ_means$mean_pc2 + axis1_rotated$y
-    ),
-    color = "red", size = 1) +
-  # Second axis (rotated to align with y-axis)
-  geom_segment(
-    aes(
-      x = econ_means$mean_pc1 - axis2_rotated$x,
-      y = econ_means$mean_pc2 - axis2_rotated$y,
-      xend = econ_means$mean_pc1 + axis2_rotated$x,
-      yend = econ_means$mean_pc2 + axis2_rotated$y
-    ),
-    color = "blue", size = 1) +
-  theme_minimal()
-```
-
-```{r}
-# Simply use the original PC vectors without rotation
-glob_plot +
-  # First principal component axis
-  geom_segment(
-    aes(
-      x = econ_means$mean_pc1 - plot_data_econ$axis1_x * 2,  # Extend in both directions
-      y = econ_means$mean_pc2 - plot_data_econ$axis1_y * 2,
-      xend = econ_means$mean_pc1 + plot_data_econ$axis1_x * 2,
-      yend = econ_means$mean_pc2 + plot_data_econ$axis1_y * 2
-    ),
-    color = "red", size = 1) +
-  # Second principal component axis
-  geom_segment(
-    aes(
-      x = econ_means$mean_pc1 - plot_data_econ$axis2_x * 2,
-      y = econ_means$mean_pc2 - plot_data_econ$axis2_y * 2,
-      xend = econ_means$mean_pc1 + plot_data_econ$axis2_x * 2,
-      yend = econ_means$mean_pc2 + plot_data_econ$axis2_y * 2
-    ),
-    color = "blue", size = 1) +
-  theme_minimal()
-```
-
-```{r}
-# Calculate current angle of axis 1 from horizontal
-axis1_angle <- atan2(plot_data_econ$axis1_y, plot_data_econ$axis1_x)
-angle_degrees1 <- axis1_angle * (180 / pi)
-
-axis2_angle <- atan2(plot_data_econ$axis2_y, plot_data_econ$axis2_x) - pi/2   
-angle_degrees2 <- axis2_angle * (180 / pi)
-
-# This is the rotation needed to make axis 1 horizontal
-rotation_angle1 <- axis1_angle  # Negative because we want to rotate back to horizontal
-rotation_angle2 <- axis2_angle  # Negative because we want to rotate back to horizontal
-# Function to rotate a vector
-rotate_vector <- function(x, y, angle) {
-  x_rot <- x * cos(angle) - y * sin(angle)
-  y_rot <- x * sin(angle) + y * cos(angle)
-  return(list(x = x_rot, y = y_rot))
-}
-
-# Rotate both axes 
-axis1_rotated <- rotate_vector(plot_data_econ$axis1_x, plot_data_econ$axis1_y, rotation_angle1)
-axis2_rotated <- rotate_vector(plot_data_econ$axis2_x, plot_data_econ$axis2_y, rotation_angle2)
-
-# Use the rotated vectors in your plot
-glob_plot +
-  # First principal component axis (rotated toward horizontal)
-  geom_segment(
-    aes(
-      x = econ_means$mean_pc1 - axis1_rotated$x,  
-      y = econ_means$mean_pc2 - axis1_rotated$y,
-      xend = econ_means$mean_pc1 + axis1_rotated$x,
-      yend = econ_means$mean_pc2 + axis1_rotated$y
-    ),
-    color = "red", size = 1) +
-  # Second principal component axis (rotated same amount)
-  geom_segment(
-    aes(
-      x = econ_means$mean_pc1 - axis2_rotated$x,
-      y = econ_means$mean_pc2 - axis2_rotated$y,
-      xend = econ_means$mean_pc1 + axis2_rotated$x,
-      yend = econ_means$mean_pc2 + axis2_rotated$y
-    ),
-    color = "blue", size = 1) +
-  theme_minimal()
-```
-
-### all disc
-
-
-Try with disc means
-```{r}
-# unique(plot_data$freq_ford)
-focal_disc <- "Clini"
-
+disc_retained <- c(
+  "Languages and Literature",
+  "History and Archaeology",
+  "Economics and Business",
+  "Electrical eng., Electronic eng., Information eng.",
+  "Physical sciences",
+  "Chemical sciences",
+  "Biological sciences",
+  "Basic medicine", 
+  "Health sciences" 
+)
 glob_data <- pca_projection |>
     filter(pubs_total >= 5)  |> 
     select(PC1, PC2, freq_ford, freq_field)
+
 glob_means <- glob_data |> 
-summarise(mean_pc1 = mean(PC1), mean_pc2 = mean(PC2), .by = freq_ford) |> 
+summarise(mean_pc1 = mean(PC1), mean_pc2 = mean(PC2), .by = freq_ford)  |> 
 left_join(
-   plot_data
+  plot_data
 )
-plot_data <- glob_means |> 
+
+plot_data_expanded <- glob_means |> 
+filter(freq_ford %in% disc_retained) |> 
 mutate(all = list(glob_data |> rename(freq_ford_2 = freq_ford))) |> 
 unnest(cols = c(all)) |> 
 mutate(disc = freq_ford == freq_ford_2) |> 
-arrange(disc)  
+arrange(disc)   |> 
+mutate(freq_ford = factor(freq_ford, levels = disc_retained))
 
-# helper <- pca_projection |> select(freq_ford, freq_field) |> 
-# distinct(freq_ford, .keep_all = T)
+```
 
-# helper$freq_field <- factor(helper$freq_field, levels = unique(helper$freq_field))
+Here we actually plot the beast with some ggplot code help from LLM.
 
-# # Then, order freq_ford based on freq_field
-# helper$freq_ford <- factor(helper$freq_ford, levels = helper$freq_ford[order(plot_data$freq_field)])
 
-# plot_data$freq_ford <- factor(plot_data$freq_ford, levels = helper$freq_ford)
-
-plot_all <- plot_data |> 
+```{r}
+plot_all <- plot_data_expanded |> 
 ggplot(aes(x = PC1, y = PC2, color = disc)) +
 geom_point(size = 0.1, alpha = 0.6) +
 scale_color_manual(values = c("TRUE" = "#4F4F4F", "FALSE" = "#C0C0C0")) +
+  # PC 1 segment in global space
   geom_segment(
     aes(
       x = mean_pc1 - axis1_x,
@@ -328,7 +107,8 @@ scale_color_manual(values = c("TRUE" = "#4F4F4F", "FALSE" = "#C0C0C0")) +
       xend = mean_pc1 + axis1_x,
       yend = mean_pc2 + axis1_y
     ),
-    color = "red", linewidth = 1) +
+    color = "red", linewidth = 1 ) +
+      # PC 2 segment in global space
   geom_segment(
     aes(
       x = mean_pc1 - axis2_x,
@@ -337,38 +117,28 @@ scale_color_manual(values = c("TRUE" = "#4F4F4F", "FALSE" = "#C0C0C0")) +
       yend = mean_pc2 + axis2_y
     ),
     color = "blue", linewidth = 1) +
-    theme(legend.position = "none") +
+
+  # Add dummy geoms to create manual legend entries
+  geom_segment(
+    aes(x = -Inf, y = -Inf, xend = -Inf, yend = -Inf, linetype = "Subcloud PC1"),
+    color = "red", linewidth = 1, show.legend = TRUE
+  ) +
+  geom_segment(
+    aes(x = -Inf, y = -Inf, xend = -Inf, yend = -Inf, linetype = "Subcloud PC2"),
+    color = "blue", linewidth = 1, show.legend = TRUE
+  ) +
+  scale_linetype_manual(
+    values = c("Subcloud PC1" = "solid", "Subcloud PC2" = "solid"),
+    guide = guide_legend(override.aes = list(color = c("red", "blue")))
+  ) +
 theme_minimal() +
-facet_wrap(~freq_ford)
+facet_wrap(~freq_ford) 
 
-ggsave("plot.png", plot_all, width = 18, height = 12, bg = "white")
-    
 
 ```
 
+Save the plot because it has too many points to be displayed interactively. 
 ```{r}
-unique(sub_pca$freq_ford)
-soc_pca <- sub_pca |> 
-filter(freq_ford == "Languages and Literature")
+ggsave(here::here("output", "figures", "plot.png"), plot_all, width = 12, height = 8, bg = "white")
+``` 
 
-pca_res <- soc_pca$pca[[1]]
-pca_res$rotation
-biplot(pca_res)
-soc_pca_df <- as_tibble(pca_res$x)  |> 
-mutate(vedidk =  pca_projection |> 
-filter(freq_ford == "Sociology") |> 
-pull(vedidk)
-	) |> 
-  left_join(pca_projection |> select(vedidk, id_helper, pubs_total, gender), by = "vedidk") |> 
-  filter(pubs_total > 10) 
-
-hc_in <- soc_pca_df |> select(starts_with("PC"))
-hc_res <- hclust(dist(hc_in))
-hc_res$labels <- soc_pca_df$id_helper
-plot(hc_res, cex = 0.6)
-plot_soc <-   soc_pca_df |> 
-ggplot(aes(x = PC1, y = PC2, label = id_helper, color = gender)) +
-  geom_text(check_overlap = T, size = 3)
-ggsave("plot_soc.png", plot_soc, width = 35, height = 20, bg = "white")
-
-```
