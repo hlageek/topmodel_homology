@@ -9,6 +9,7 @@ lapply(list.files(here::here("R"), full.names = T), source)
 lib_require("tidyverse")
 lib_require("here")
 lib_require("arrow")
+lib_require("tidytable")
 ```
 
 For simplicity's sake, I am downloading an already calculated PCA projection of individuals. One thing to note is that this data object only contains 10 PC components. It would have been better to use all PCs, but for exploration, this should be enough. 
@@ -22,6 +23,24 @@ data_require(pca_data)
 pca_projection <- as_tibble(readRDS(pca_data$path))
 ```
 
+This is the original PC object with topics in rows and disciplines in columns 
+```{r}
+pca_src_data <- list(
+  source = "https://owncloud.cesnet.cz/index.php/s/Bf3Qqn2S2GX1AEL/download",
+  path = here::here("data", "pca_src.RDS")
+)
+data_require(pca_src_data)
+pca_src <- readRDS(pca_src_data$path)
+```
+
+```{r}
+topmodel_data <- list(
+  source = "https://osf.io/download/45f2b/",
+  path = here::here("data", "topic_model_202207170249_topics_level_1.feather")
+)
+data_require(topmodel_data)
+topmodel <- arrow::read_feather(topmodel_data$path) |> select(-level)
+```
 
 This is the tricky part of the code where we try to obtain the eigenvectors of the principal components of the sub-clouds as they would appear in the original set of coordinates. 
 
@@ -142,3 +161,8 @@ Save the plot because it has too many points to be displayed interactively.
 ggsave(here::here("output", "figures", "plot.png"), plot_all, width = 12, height = 8, bg = "white")
 ``` 
 
+
+```{r}
+topic_names <- name_topics(topmodel)
+
+``` 

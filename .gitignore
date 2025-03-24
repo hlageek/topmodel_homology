@@ -59,4 +59,5 @@ abstract.pdf
 *.qs
 *.RDS
 *.png
+*.feather
 wip.qmd
