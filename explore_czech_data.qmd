@@ -9,7 +9,6 @@ lapply(list.files(here::here("R"), full.names = T), source)
 lib_require("tidyverse")
 lib_require("here")
 lib_require("arrow")
-lib_require("tidytable")
 ```
 
 For simplicity's sake, I am downloading an already calculated PCA projection of individuals. One thing to note is that this data object only contains 10 PC components. It would have been better to use all PCs, but for exploration, this should be enough. 
@@ -66,7 +65,7 @@ Here we just transform the coordinates we have obtained above into some workable
 ```{r}
 plot_data <- sub_pca |>
   select(freq_ford, axis1, axis2) |>
-  unnest_longer(starts_with("axis")) |>
+  tidyr::unnest_longer(starts_with("axis")) |>
   pivot_wider(names_from = c(axis1_id, axis2_id),
               values_from = c(axis1, axis2)) |>
   rename("axis1_x" = 2, "axis1_y" = 3, "axis2_x" = 4, "axis2_y" = 5) 
@@ -166,3 +165,88 @@ ggsave(here::here("output", "figures", "plot.png"), plot_all, width = 12, height
 topic_names <- name_topics(topmodel)
 
 ``` 
+
+```{r}
+loadings_df <- as_tibble(pca_src$rotation) |>  
+select(PC1, PC2) |> 
+mutate(freq_ford = rownames(pca_src$rotation)) |> 
+  mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+left_join(
+  plot_data_expanded |> 
+  select(freq_ford, starts_with("axis")) |> 
+  distinct() |> 
+  select(-starts_with("PC"))|> 
+  mutate(freq_ford = abbrev_discs(freq_ford))
+  )  |> 
+  mutate(freq_ford_2 = ifelse(is.na(axis1_x), "other", freq_ford)) |> 
+  mutate(across(starts_with("axis"), ~.x*0.3)) |> 
+  na.omit() |> 
+  select(-freq_ford) |> 
+  mutate(others = list(as_tibble(pca_src$rotation) |>  
+select(PC1x = PC1, PC2y = PC2) |> 
+mutate(freq_ford = rownames(pca_src$rotation)) |> 
+  mutate(freq_ford_1 = abbrev_discs(freq_ford)) )) |> 
+  unnest(cols = "others")
+```
+
+Original Loadings
+```{r}
+# Plot loadings
+ggplot(loadings_df, aes(x = PC1x, y = PC2y)) +
+  geom_point() +
+  geom_text(aes(label = freq_ford), hjust = 1.1, vjust = 1.1) +
+    geom_segment(
+    aes(
+      x = 0 - axis1_x,
+      y = 0 - axis1_y,
+      xend = 0 + axis1_x,
+      yend =  axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+    aes(
+      x = 0 - axis2_x,
+      y = 0 - axis2_y,
+      xend = 0 + axis2_x,
+      yend =  axis2_y
+    ), color = "blue", linewidth = 1 ) +
+  labs(title = "", x = "PC1", y = "PC2") +
+  theme_minimal() +
+  facet_wrap(~freq_ford_2)
+``` 
+
+original scores
+```{r}
+scores_df <- as_tibble(pca_src$x) |>  
+  select(PC1, PC2) |> 
+  mutate(topic = rownames(pca_src$x)) |> 
+  left_join(
+    topic_names  |> 
+    mutate(topic_desc = stringr::str_trunc(topic_desc, 10))
+  ) 
+coords_df <-   plot_data_expanded |> 
+  select(freq_ford, starts_with("axis")) |> 
+  distinct() |> 
+  select(-starts_with("PC"))
+
+ggplot(scores_df, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc),check_overlap = TRUE,size = 2) +
+    geom_segment(
+      data = coords_df |>  mutate(across(starts_with("axis"), ~.x*5)),
+    aes(
+      x = 0 - axis1_x,
+      y = 0 - axis1_y,
+      xend = 0 + axis1_x,
+      yend =  axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+           data = coords_df|>  mutate(across(starts_with("axis"), ~.x*4)),
+    aes(
+      x = 0 - axis2_x,
+      y = 0 - axis2_y,
+      xend = 0 + axis2_x,
+      yend =  axis2_y
+    ), color = "blue", linewidth = 1 ) +
+  labs(title = "", x = "PC1", y = "PC2") +
+  theme_minimal() +
+  facet_wrap(~freq_ford)
+```
