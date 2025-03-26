@@ -32,6 +32,8 @@ data_require(pca_src_data)
 pca_src <- readRDS(pca_src_data$path)
 ```
 
+Download topic distributions.
+
 ```{r}
 topmodel_data <- list(
   source = "https://osf.io/download/45f2b/",
@@ -194,7 +196,7 @@ Original Loadings
 # Plot loadings
 ggplot(loadings_df, aes(x = PC1x, y = PC2y)) +
   geom_point() +
-  geom_text(aes(label = freq_ford), hjust = 1.1, vjust = 1.1) +
+  geom_text(aes(label = freq_ford), size = 2.5, hjust = 1.1, vjust = 1.1) +
     geom_segment(
     aes(
       x = 0 - axis1_x,
@@ -228,7 +230,7 @@ coords_df <-   plot_data_expanded |>
   distinct() |> 
   select(-starts_with("PC"))
 
-ggplot(scores_df, aes(x = PC1, y = PC2)) +
+topic_plot <- ggplot(scores_df, aes(x = PC1, y = PC2)) +
   geom_text(aes(label = topic_desc),check_overlap = TRUE,size = 2) +
     geom_segment(
       data = coords_df |>  mutate(across(starts_with("axis"), ~.x*5)),
@@ -247,6 +249,109 @@ ggplot(scores_df, aes(x = PC1, y = PC2)) +
       yend =  axis2_y
     ), color = "blue", linewidth = 1 ) +
   labs(title = "", x = "PC1", y = "PC2") +
-  theme_minimal() +
+  theme_minimal() 
+topic_plot +
   facet_wrap(~freq_ford)
+```
+
+
+```{r}
+# Create the plot
+ellipses_plot <- glob_data |> 
+  filter(freq_ford %in% disc_retained) |> 
+  mutate(PC1 = scale(PC1), PC2 = scale(PC2)) |> 
+  ggplot(aes(PC1, PC2, group = freq_ford, color = freq_ford)) +
+  geom_point(data = glob_data |> mutate(PC1 = scale(PC1), PC2 = scale(PC2)), color = "lightgrey") +
+  stat_ellipse(type = "norm") +
+  theme_minimal()
+
+# Extract the ellipse data
+ellipse_data <- ggplot_build(ellipses_plot)$data[[2]]
+
+# Create a mapping from group numbers to freq_ford labels
+group_mapping <- glob_data |> 
+  filter(freq_ford %in% disc_retained) |> 
+  distinct(freq_ford) |> 
+  mutate(group = as.numeric(as.factor(freq_ford)))
+
+# Ensure the group names are correctly assigned to the ellipse data
+ellipse_coords <- ellipse_data |> 
+  select(x, y, group) |> 
+  left_join(group_mapping, by = "group") |> 
+  mutate(freq_ford = abbrev_discs(freq_ford))
+
+# You can now use these coordinates in another plot
+scores_df |> 
+  mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) |> 
+  ggplot(aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc), check_overlap = TRUE, size = 2) +
+  geom_path(data = ellipse_coords, 
+  aes(x, y, group = group, color = freq_ford)) +
+  theme_minimal()
+
+```
+
+
+```{r}
+scores_df_norm <- scores_df  |> 
+mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) 
+
+
+# Function to check if a point is inside a polygon using the ray-casting algorithm
+is_point_in_polygon <- function(point, polygon) {
+  n <- nrow(polygon)
+  inside <- FALSE
+  j <- n
+  for (i in 1:n) {
+    if (((polygon$y[i] > point[2]) != (polygon$y[j] > point[2])) &&
+        (point[1] < (polygon$x[j] - polygon$x[i]) * (point[2] - polygon$y[i]) / (polygon$y[j] - polygon$y[i]) + polygon$x[i])) {
+      inside <- !inside
+    }
+    j <- i
+  }
+  return(inside)
+}
+
+unique(ellipse_coords$freq_ford)
+focal_disc <- "EconBus"
+# Filter ellipse_coords for the specific group
+ellipse_coords_langlit <- ellipse_coords |> filter(freq_ford == focal_disc)
+
+# Filter scores_df_norm for points within the ellipse
+scores_within_ellipse <- scores_df_norm |> 
+  rowwise() |> 
+  filter(is_point_in_polygon(c(PC1, PC2), ellipse_coords_langlit))  |> 
+  ungroup()
+
+axis_means <- scores_within_ellipse |> 
+  summarise(PC1x = mean(PC1), PC2y = mean(PC2))
+
+
+coords_df_norm <- coords_df |> 
+mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+filter(freq_ford == focal_disc) 
+
+
+# Plot the observations that fall within the ellipse by group
+ggplot(scores_within_ellipse, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc), check_overlap = TRUE, size = 3) +
+    geom_path(data = ellipse_coords_langlit, aes(x, y, group = group, color = freq_ford)) +
+        geom_segment(
+      data = coords_df_norm |>  mutate(across(starts_with("axis"), ~.x)),
+    aes(
+      x = axis_means$PC1x - axis1_x,
+      y = axis_means$PC2y  - axis1_y,
+      xend = axis_means$PC1x + axis1_x,
+      yend =  axis_means$PC2y + axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+           data = coords_df_norm|>  mutate(across(starts_with("axis"), ~.x)),
+    aes(
+      x = axis_means$PC1x - axis2_x,
+      y = axis_means$PC2y - axis2_y,
+      xend = axis_means$PC1x + axis2_x,
+      yend = axis_means$PC2y + axis2_y
+    ), color = "blue", linewidth = 1 ) +
+    theme_minimal()
+
 ```
