@@ -48,6 +48,7 @@ This is the tricky part of the code where we try to obtain the eigenvectors of t
 ```{r}
 sub_pca <- pca_projection |> 
 select(freq_ford, starts_with("PC")) |> 
+mutate(across(starts_with("PC"), ~scale(.x))) |> 
 rename_with(~ paste0("orig_", .x), starts_with("PC")) |> 
 nest(mat = starts_with("orig_PC")) |> 
 mutate(pca = map(mat, prcomp, scale = F)) |> 
@@ -60,6 +61,16 @@ axis2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
   # subcloud coordinates of PC2
   c(x_coord = rotation_matrix[1, 2], y_coord = rotation_matrix[2, 2])
+})) |> 
+mutate(subpc1 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC1
+   rotation_matrix[, 1]
+}),
+subpc2 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC2
+   rotation_matrix[, 2]
 }))
 ```
 
@@ -92,11 +103,18 @@ disc_retained <- c(
   "Health sciences" 
 )
 glob_data <- pca_projection |>
+mutate(across(starts_with("PC"), ~scale(.x))) |> 
+
     filter(pubs_total >= 5)  |> 
     select(PC1, PC2, freq_ford, freq_field)
 
 glob_means <- glob_data |> 
-summarise(mean_pc1 = mean(PC1), mean_pc2 = mean(PC2), .by = freq_ford)  |> 
+summarise(
+  mean_pc1 = mean(PC1), 
+  mean_pc2 = mean(PC2), 
+  norm_mean_pc1 = mean(scale(PC1)), 
+  norm_mean_pc2 = mean(scale(PC2)), 
+  .by = freq_ford)  |> 
 left_join(
   plot_data
 )
@@ -296,6 +314,9 @@ scores_df |>
 scores_df_norm <- scores_df  |> 
 mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) 
 
+glob_means_norm <- glob_means |> 
+  mutate(across(where(is.numeric), scale))|> 
+  mutate(freq_ford = abbrev_discs(freq_ford))
 
 # Function to check if a point is inside a polygon using the ray-casting algorithm
 is_point_in_polygon <- function(point, polygon) {
@@ -313,7 +334,7 @@ is_point_in_polygon <- function(point, polygon) {
 }
 
 unique(ellipse_coords$freq_ford)
-focal_disc <- "EconBus"
+focal_disc <- "HistArch"
 # Filter ellipse_coords for the specific group
 ellipse_coords_langlit <- ellipse_coords |> filter(freq_ford == focal_disc)
 
@@ -326,6 +347,23 @@ scores_within_ellipse <- scores_df_norm |>
 axis_means <- scores_within_ellipse |> 
   summarise(PC1x = mean(PC1), PC2y = mean(PC2))
 
+axis_means <- glob_means_norm |> 
+filter(freq_ford == focal_disc) |> 
+rename("PC1x" = 2, "PC2y" = 3)
+
+axis_means <- glob_data |> 
+  mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+summarise(PC1x = mean(scale(PC1)), PC2y = mean(scale(PC2)), .by = freq_ford)  |> 
+filter(freq_ford == focal_disc)
+
+axis_means <- glob_means|> 
+  mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+  filter(freq_ford == focal_disc)  |> 
+  select("PC1x" = norm_mean_pc1, "PC2y" = norm_mean_pc2)
+
+axis_means <- tibble(PC1x = 0, PC2y = 0)
+scores_within_ellipse <- scores_within_ellipse |> 
+mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) 
 
 coords_df_norm <- coords_df |> 
 mutate(freq_ford = abbrev_discs(freq_ford)) |> 
@@ -335,7 +373,6 @@ filter(freq_ford == focal_disc)
 # Plot the observations that fall within the ellipse by group
 ggplot(scores_within_ellipse, aes(x = PC1, y = PC2)) +
   geom_text(aes(label = topic_desc), check_overlap = TRUE, size = 3) +
-    geom_path(data = ellipse_coords_langlit, aes(x, y, group = group, color = freq_ford)) +
         geom_segment(
       data = coords_df_norm |>  mutate(across(starts_with("axis"), ~.x)),
     aes(
