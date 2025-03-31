@@ -60,6 +60,15 @@ axis2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
   # subcloud coordinates of PC2
   c(x_coord = rotation_matrix[1, 2], y_coord = rotation_matrix[2, 2])
+})) |> 
+mutate(subpc1 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC1
+  rotation_matrix[, 1]
+}),
+subpc2 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  rotation_matrix[, 2]
 }))
 ```
 
@@ -89,7 +98,8 @@ disc_retained <- c(
   "Chemical sciences",
   "Biological sciences",
   "Basic medicine", 
-  "Health sciences" 
+  "Health sciences",
+  "Sociology"
 )
 glob_data <- pca_projection |>
     filter(pubs_total >= 5)  |> 
@@ -164,8 +174,9 @@ ggsave(here::here("output", "figures", "plot.png"), plot_all, width = 12, height
 
 
 ```{r}
+library(tidytable)
 topic_names <- name_topics(topmodel)
-
+detach("package:tidytable", unload = TRUE)
 ``` 
 
 ```{r}
@@ -313,7 +324,7 @@ is_point_in_polygon <- function(point, polygon) {
 }
 
 unique(ellipse_coords$freq_ford)
-focal_disc <- "EconBus"
+focal_disc <- "LangLit"
 # Filter ellipse_coords for the specific group
 ellipse_coords_langlit <- ellipse_coords |> filter(freq_ford == focal_disc)
 
@@ -335,6 +346,72 @@ filter(freq_ford == focal_disc)
 # Plot the observations that fall within the ellipse by group
 ggplot(scores_within_ellipse, aes(x = PC1, y = PC2)) +
   geom_text(aes(label = topic_desc), check_overlap = TRUE, size = 3) +
+    geom_path(data = ellipse_coords_langlit, aes(x, y, group = group, color = freq_ford)) +
+        geom_segment(
+      data = coords_df_norm |>  mutate(across(starts_with("axis"), ~.x)),
+    aes(
+      x = axis_means$PC1x - axis1_x,
+      y = axis_means$PC2y  - axis1_y,
+      xend = axis_means$PC1x + axis1_x,
+      yend =  axis_means$PC2y + axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+           data = coords_df_norm|>  mutate(across(starts_with("axis"), ~.x)),
+    aes(
+      x = axis_means$PC1x - axis2_x,
+      y = axis_means$PC2y - axis2_y,
+      xend = axis_means$PC1x + axis2_x,
+      yend = axis_means$PC2y + axis2_y
+    ), color = "blue", linewidth = 1 ) +
+    theme_minimal()
+
+```
+
+Try to get topic loadings
+
+```{r}
+
+scores_for_loadings <- as_tibble(pca_src$x) |>  
+  mutate(topic = rownames(pca_src$x)) |> 
+  left_join(
+    topic_names  |> 
+    mutate(topic_desc = stringr::str_trunc(topic_desc, 10))
+  ) 
+scores_for_loadings
+
+coefficients_subpc1 <- sub_pca |> 
+mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+filter(freq_ford == focal_disc)  |> 
+pull(subpc1) |> unlist() 
+
+coefficients_subpc2 <- sub_pca |> 
+mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+filter(freq_ford == focal_disc)  |> 
+pull(subpc2) |> unlist()
+
+# Calculate loadings for subpc1 and subpc2
+loadings_subpc1 <- scores_for_loadings[,1:10] %>%
+  as.matrix() %*% coefficients_subpc1
+
+loadings_subpc2 <- scores_for_loadings[,1:10] %>%
+  as.matrix() %*% coefficients_subpc2
+
+# Combine loadings into a data frame
+loadings_df <- tibble(topic = scores_for_loadings$topic, loadings_subpc1 = loadings_subpc1[,1], loadings_subpc2 = loadings_subpc2[,1]) |> 
+  mutate(
+    squared_loadings_subpc1 = sign(loadings_subpc1) * (loadings_subpc1^2),
+    scaled_squared_loadings = scales::rescale(abs(squared_loadings_subpc1)),
+    z_loadings_subpc1 = scale(loadings_subpc1),
+    abs_loadings_subpc1 = abs(loadings_subpc1),  # Take absolute value
+    scaled_loadings_subpc1 = scales::rescale(abs_loadings_subpc1) 
+  )
+
+scores_within_ellipse2 <- scores_within_ellipse |> 
+left_join(loadings_df) |> 
+left_join(topic_names |> rename(topic_desc2 = topic_desc))
+
+ggplot(scores_within_ellipse2, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc, size = abs(z_loadings_subpc1)), check_overlap = TRUE) +
     geom_path(data = ellipse_coords_langlit, aes(x, y, group = group, color = freq_ford)) +
         geom_segment(
       data = coords_df_norm |>  mutate(across(starts_with("axis"), ~.x)),
