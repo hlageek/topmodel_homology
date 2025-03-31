@@ -69,7 +69,48 @@ mutate(subpc1 = map(pca, .f = function(x) {
 subpc2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
   rotation_matrix[, 2]
+})) |> 
+mutate(
+  contr_cult_nat = abs(map_dbl(axis1, ~.x[1])),
+    contr_life_nonlife = abs(map_dbl(axis1, ~.x[2]))
+) |> 
+mutate(contrs = map_dbl(pca, .f = function(x) {
+# Calculate contributions
+loadings <- x$rotation
+sdev <- x$sdev
+var_explained <- sdev^2
+
+# Contribution of variables to the first principal component
+contributions <- (loadings[, 1]^2) / var_explained[1]
+contributions[1]
+})) |> 
+mutate(contrs2 = map_dbl(pca, .f = function(x) {
+
+
+# Calculate contributions
+loadings <- x$rotation
+loadings_pc1 <- loadings[1, ]
+squared_loadings_pc1 <- loadings_pc1^2
+total_squared_loadings_pc1 <- sum(squared_loadings_pc1)
+
+# Contribution of variables to the first principal component (percentage)
+contributions <- (squared_loadings_pc1 / total_squared_loadings_pc1) * 100
+
+contributions[1]
 }))
+
+sub_pca |> 
+arrange(contrs2) |> 
+mutate(contrs_rank = rank(contrs)) |>  # Add this line to rank contrs2
+  mutate(contrs2_rank = rank(contrs2)) |>  # Add this line to rank contrs2
+
+select(freq_ford, starts_with("contrs")) |> 
+filter(!stringr::str_detect(freq_ford, "techno|ther|engineering")) |> 
+print(n=42)
+test <- sub_pca |> 
+filter(freq_ford == "Sociology")
+
+sub_pca$contrs
 ```
 
 Here we just transform the coordinates we have obtained above into some workable form. 
