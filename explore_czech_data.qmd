@@ -334,7 +334,7 @@ is_point_in_polygon <- function(point, polygon) {
 }
 
 unique(ellipse_coords$freq_ford)
-focal_disc <- "HistArch"
+focal_disc <- "PhysicalSci"
 # Filter ellipse_coords for the specific group
 ellipse_coords_langlit <- ellipse_coords |> filter(freq_ford == focal_disc)
 
