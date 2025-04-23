@@ -11,7 +11,9 @@ lib_require("here")
 lib_require("arrow")
 ```
 
-For simplicity's sake, I am downloading an already calculated PCA projection of individuals. One thing to note is that this data object only contains 10 PC components. It would have been better to use all PCs, but for exploration, this should be enough. 
+For simplicity's sake, I am downloading an already calculated PCA projection of individuals. 
+One thing to note is that this data object only contains 10 PC components.
+It would have been better to use all PCs, but for exploration, this should be enough. 
 
 ```{r}
 pca_data <- list(
@@ -44,6 +46,11 @@ topmodel <- arrow::read_feather(topmodel_data$path) |> select(-level)
 ```
 
 This is the tricky part of the code where we try to obtain the eigenvectors of the principal components of the sub-clouds as they would appear in the original set of coordinates. 
+Specifically, what happens here
+
+- the dataframe is nested by discipline (disciplinary subclouds)
+- a new PCA runs for each nested block (with original PCA coordinates as variables)
+- for each block, we extract some information from its specific PCA
 
 ```{r}
 sub_pca <- pca_projection |> 
@@ -59,22 +66,78 @@ mutate(axis1 = map(pca, .f = function(x) {
 }),
 axis2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
-  # subcloud coordinates of PC2
+  # subcloud directions of PC1 and PC2
   c(x_coord = rotation_matrix[1, 2], y_coord = rotation_matrix[2, 2])
 })) |> 
 mutate(subpc1 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
-  # subcloud coordinates of PC1
+  # subcloud coordinates of PC1 - all
    rotation_matrix[, 1]
 }),
 subpc2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
-  # subcloud coordinates of PC2
+  # subcloud coordinates of PC2 - all
    rotation_matrix[, 2]
 }))
 ```
 
-Here we just transform the coordinates we have obtained above into some workable form. 
+```{r}
+topic_names <- name_topics(topmodel)
+sub_pca$freq_ford
+soc_vec1 <- sub_pca |> 
+  #filter(freq_ford == "Economics and Business") |> 
+  #filter(freq_ford == "Sociology") |> 
+  #filter(freq_ford == "Physical sciences") |> 
+  #filter(freq_ford == "Chemical sciences") |> 
+  filter(freq_ford == "History and Archaeology") |> 
+  #filter(freq_ford == "Biological sciences") |> 
+  #filter(freq_ford == "Basic medicine") |> 
+
+  pull(subpc1) |> 
+  unlist()
+
+cosine_similarity <- function(vec1, vec2) {
+  # Normalize the vectors
+  vec1_normalized <- vec1 / sqrt(sum(vec1^2))
+  vec2_normalized <- vec2 / sqrt(sum(vec2^2))
+  
+  # Calculate the cosine similarity
+  sum(vec1_normalized * vec2_normalized)
+}
+
+# Apply the function to each row of the matrix
+cosine_values <- apply(pca_src$x[, 1:10], 1, function(row) cosine_similarity(soc_vec1, row))
+
+soc_cos <- enframe(cosine_values, "topic", "cosine") |> 
+  arrange(desc(cosine))
+
+topic_coords <- pca_src$x[, 1:2] |> 
+  tibble::as_tibble(rownames = "topic")
+
+stats_pos <- soc_cos %>% filter(cosine > 0) %>% summarise(mean_pos = mean(cosine), sd_pos = sd(cosine))
+stats_neg <- soc_cos %>% filter(cosine < 0) %>% summarise(mean_neg = mean(cosine), sd_neg = sd(cosine))
+
+mean_pos <- stats_pos$mean_pos
+sd_pos <- stats_pos$sd_pos*2
+mean_neg <- stats_neg$mean_neg
+sd_neg <- stats_neg$sd_neg*2
+
+
+soc_cos |> 
+  filter((cosine > 0 & cosine > mean_pos + sd_pos) | (cosine < 0 & cosine < mean_neg - sd_neg)) |> 
+  left_join(topic_names) |> 
+  left_join(topic_coords) |> 
+  mutate(topic_desc = stringr::word(topic_desc)) |> 
+  mutate(abs_cosine = abs(cosine)) |> 
+  mutate(pole = ifelse(cosine > 0, "pos", "neg")) |> 
+  ggplot(aes(PC1, PC2)) +
+  geom_text(aes(label = topic_desc, size = abs_cosine, color = pole), check_overlap = TRUE)
+
+```
+
+
+
+Here we just transform the specific coordinates we have obtained above into some workable form. 
 ```{r}
 plot_data <- sub_pca |>
   select(freq_ford, axis1, axis2) |>
