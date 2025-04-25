@@ -45,6 +45,28 @@ data_require(topmodel_data)
 topmodel <- arrow::read_feather(topmodel_data$path) |> select(-level)
 ```
 
+Download document distributions.
+
+```{r}
+docmodel_data <- list(
+  source = "https://osf.io/download/hvqs9/",
+  path = here::here("data", "topic_model_202207170249_documents_level_1.feather")
+)
+data_require(docmodel_data)
+docmodel <- arrow::read_feather(docmodel_data$path) |> rename(id_unique = doc) |> mutate(id_unique = as.integer(id_unique))
+```
+
+Download people-papers.
+
+```{r}
+people_pubs_data <- list(
+  source = "https://osf.io/download/ynxsg/",
+  path = here::here("data", "authors_by_pubs.arrow")
+)
+data_require(people_pubs_data)
+people_pubs <- arrow::read_feather(people_pubs_data$path) 
+```
+
 This is the tricky part of the code where we try to obtain the eigenvectors of the principal components of the sub-clouds as they would appear in the original set of coordinates. 
 Specifically, what happens here
 
@@ -82,20 +104,87 @@ subpc2 = map(pca, .f = function(x) {
 ```
 
 ```{r}
+
+econ_pca <- sub_pca |> 
+  filter(freq_ford == "Physical sciences") |> 
+  pull(pca) |> 
+  pluck(1)
+pc1_scores <- econ_pca$x[, 1]
+econ_vedidks <- pca_projection |> 
+select(freq_ford, vedidk) |> 
+  filter(freq_ford == "Physical sciences") |> 
+  pull(vedidk)
+names(pc1_scores) <- econ_vedidks
+contributions_pc1 <- pc1_scores^2
+avg_contribution_pc1 <- mean(contributions_pc1)
+indices_above_avg <- which(contributions_pc1 > avg_contribution_pc1)
+positive_indices <- indices_above_avg[pc1_scores[indices_above_avg] > 0]
+positive_contributors <- tibble(
+  vedidk = names(pc1_scores)[positive_indices],
+  PC1_score = pc1_scores[positive_indices],
+  contribution = contributions_pc1[positive_indices],
+  direction = "positive"
+) |> 
+  arrange(desc(contribution))
+
+negative_indices <- indices_above_avg[pc1_scores[indices_above_avg] < 0]
+negative_contributors <- data.frame(
+  vedidk = names(pc1_scores)[negative_indices],
+  PC1_score = pc1_scores[negative_indices],
+  contribution = contributions_pc1[negative_indices],
+  direction = "negative"
+) |> 
+  arrange(desc(contribution))
+
+contributors <- bind_rows(positive_contributors, negative_contributors)
+```
+
+```{r}
+contributors_pubs <- contributors |> 
+  left_join(people_pubs |> select(vedidk, id_unique), by = join_by(vedidk)) |> 
+  inner_join(docmodel, by = join_by(id_unique))
+
+mean_topic_dist <- contributors_pubs |> 
+  select(direction, starts_with("topic")) |> 
+  summarise(across(starts_with("topic"), mean), .by = direction) 
+positive_vec <- mean_topic_dist |>
+                filter(direction == "positive") |> 
+                select(-direction) |> 
+                as.numeric()
+negative_vec <- mean_topic_dist |>
+                filter(direction == "negative") |> 
+                select(-direction) |> 
+                as.numeric()
+denominator_vec <- positive_vec + negative_vec
+
+frequency_scores_vec <- ifelse(denominator_vec > 0,
+                                 positive_vec / denominator_vec,
+                                 0.5)
 topic_names <- name_topics(topmodel)
+
+frequency_scores_df <- tibble(
+    topic = colnames(mean_topic_dist |>
+                select(-direction)),
+    score = frequency_scores_vec
+  ) |> 
+    arrange(desc(score)) |> 
+    left_join(topic_names, by = join_by(topic))
+```
+
+
+```{r}
 sub_pca$freq_ford
 soc_vec1 <- sub_pca |> 
   #filter(freq_ford == "Economics and Business") |> 
   #filter(freq_ford == "Sociology") |> 
-  #filter(freq_ford == "Physical sciences") |> 
-  #filter(freq_ford == "Chemical sciences") |> 
-  filter(freq_ford == "History and Archaeology") |> 
+  filter(freq_ford == "Physical sciences") |> 
+  #filter(freq_ford == "Mathematics") |> 
+  #filter(freq_ford == "History and Archaeology") |> 
   #filter(freq_ford == "Biological sciences") |> 
   #filter(freq_ford == "Basic medicine") |> 
-
   pull(subpc1) |> 
   unlist()
-
+#soc_vec1 <- soc_vec1[1:2]
 cosine_similarity <- function(vec1, vec2) {
   # Normalize the vectors
   vec1_normalized <- vec1 / sqrt(sum(vec1^2))
@@ -118,23 +207,110 @@ stats_pos <- soc_cos %>% filter(cosine > 0) %>% summarise(mean_pos = mean(cosine
 stats_neg <- soc_cos %>% filter(cosine < 0) %>% summarise(mean_neg = mean(cosine), sd_neg = sd(cosine))
 
 mean_pos <- stats_pos$mean_pos
-sd_pos <- stats_pos$sd_pos*2
+sd_pos <- stats_pos$sd_pos
 mean_neg <- stats_neg$mean_neg
-sd_neg <- stats_neg$sd_neg*2
+sd_neg <- stats_neg$sd_neg
 
 
-soc_cos |> 
+
+contributing_topics <- soc_cos |> 
   filter((cosine > 0 & cosine > mean_pos + sd_pos) | (cosine < 0 & cosine < mean_neg - sd_neg)) |> 
+  #  filter(cosine > (mean_pos + sd_pos)) |> 
   left_join(topic_names) |> 
   left_join(topic_coords) |> 
-  mutate(topic_desc = stringr::word(topic_desc)) |> 
+  mutate(topic_desc = map_chr(topic_desc, ~paste(stringr::word(.x, 1:2), collapse = " "))) |> 
   mutate(abs_cosine = abs(cosine)) |> 
-  mutate(pole = ifelse(cosine > 0, "pos", "neg")) |> 
+  mutate(pole = ifelse(cosine > 0, "pos", "neg")) 
+  #filter(pole == "neg") |> 
+
+
+contributing_topics <- soc_cos |> 
+  filter(cosine > 0.1) 
+
+contributing_topics |> 
+  inner_join(frequency_scores_df, join_by(topic)) |> 
+  filter(score > 0 & score < 1) |> 
+  View()
+  
+  
   ggplot(aes(PC1, PC2)) +
-  geom_text(aes(label = topic_desc, size = abs_cosine, color = pole), check_overlap = TRUE)
+  geom_abline(slope = soc_vec1[2]/soc_vec1[1], intercept = 0, color = "red") + 
+  #geom_point(aes(soc_vec1[1], soc_vec1[2])) +
+  geom_text(aes(label = topic_desc, size = abs_cosine, color = pole)) 
 
 ```
 
+```{r}
+contributors_means <- contributors_pubs |> 
+  select(starts_with("topic")) |> 
+  colMeans()
+
+non_contributors <- docmodel |> 
+  filter(!id_unique %in% contributors_pubs$id_unique)  
+
+non_contributors_means <- docmodel |> 
+  select(starts_with("topic")) |> 
+  colMeans()
+# non_contributors_sd <- non_contributors |> 
+#   select(starts_with("topic")) |> 
+#   summarise(across(everything(), sd))
+
+denominator_vec_contr <- contributors_means + non_contributors_means
+
+frequency_scores_vec_contr <- ifelse(denominator_vec_contr > 0,
+                                 contributors_means / denominator_vec_contr,
+                                 0.5)
+non_contributors_sd_vec <- as.numeric(non_contributors_sd[1,])
+non_contributors_vec <- non_contributors_means + non_contributors_sd_vec
+contributors_topics_indices <- which(frequency_scores_vec_contr > 0.75)
+
+contributor_topics <- names(contributors_means)[contributors_topics_indices]
+econ_topics <- frequency_scores_df |>  dplyr::filter(topic %in% contributor_topics) 
+head(econ_topics, n = 20)
+tail(econ_topics, n = 20) |> arrange(score)
+```
+
+PCA with topics in cols
+```{r}
+econ_top_df <- contributors_pubs |> 
+  select(vedidk, starts_with("topic")) |> 
+  summarise(across(starts_with("topic"), mean), .by = vedidk)
+
+econ_top_clr <- compositions::clr(scale(as.matrix(econ_top_df[,-1])))
+
+econ_top_pca <- prcomp(econ_top_clr)
+
+econ_top_res <- as_tibble(econ_top_pca$rotation, rownames = "topic") |> 
+  select(topic, PC1, PC2) |> 
+  left_join(topic_names) |> 
+  arrange(desc(PC1))
+
+
+head(econ_top_res, n = 20)
+tail(econ_top_res, n = 20) |> arrange(PC1)
+
+head(econ_top_res |>  dplyr::filter(topic %in% contributor_topics), n = 20)
+tail(econ_top_res |>  dplyr::filter(topic %in% contributor_topics), n = 20) |> arrange(PC1)
+
+
+
+econ_top_df_reduced <- econ_top_df[, contributor_topics]
+econ_top_clr_reduced <- compositions::clr(
+  scale(
+    compositions::clo(as.matrix(econ_top_df[,-1])) 
+    )
+    )
+econ_top_pca_reduced <- prcomp(econ_top_clr_reduced)
+
+econ_top_res_reduced <- as_tibble(econ_top_pca_reduced$rotation, rownames = "topic") |> 
+  select(topic, PC1, PC2) |> 
+  left_join(topic_names) |> 
+  arrange(desc(PC1))
+
+head(econ_top_res_reduced, n = 20)
+tail(econ_top_res_reduced, n = 20) |> arrange(PC1)
+
+```
 
 
 Here we just transform the specific coordinates we have obtained above into some workable form. 
@@ -455,3 +631,4 @@ ggplot(scores_within_ellipse, aes(x = PC1, y = PC2)) +
     theme_minimal()
 
 ```
+
