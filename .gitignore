@@ -60,4 +60,6 @@ abstract.pdf
 *.RDS
 *.png
 *.feather
+*.arrow
+.vdoc*
 wip.qmd
