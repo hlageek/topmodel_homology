@@ -18,7 +18,7 @@ It would have been better to use all PCs, but for exploration, this should be en
 ```{r}
 pca_data <- list(
   source = "https://owncloud.cesnet.cz/index.php/s/JHZrStMPTtQcd8F/download",
-  path = here::here("data", "pca_projection.RDS")
+  path = here::here("data", "pca_projection_full.RDS")
 )
 data_require(pca_data)  
 pca_projection <- as_tibble(readRDS(pca_data$path))
@@ -75,68 +75,229 @@ Specifically, what happens here
 - for each block, we extract some information from its specific PCA
 
 ```{r}
-sub_pca <- pca_projection |> 
+sub_pca_df <- pca_projection |> 
 select(freq_ford, starts_with("PC")) |> 
-mutate(across(starts_with("PC"), ~scale(.x))) |> 
-rename_with(~ paste0("orig_", .x), starts_with("PC")) |> 
-nest(mat = starts_with("orig_PC")) |> 
-mutate(pca = map(mat, prcomp, scale = F)) |> 
-mutate(axis1 = map(pca, .f = function(x) {
-  rotation_matrix <- x$rotation
-  # subcloud coordinates of PC1
-  c(x_coord = rotation_matrix[1, 1], y_coord = rotation_matrix[2, 1])
-}),
-axis2 = map(pca, .f = function(x) {
-  rotation_matrix <- x$rotation
-  # subcloud directions of PC1 and PC2
-  c(x_coord = rotation_matrix[1, 2], y_coord = rotation_matrix[2, 2])
-})) |> 
-mutate(subpc1 = map(pca, .f = function(x) {
-  rotation_matrix <- x$rotation
-  # subcloud coordinates of PC1 - all
-   rotation_matrix[, 1]
-}),
-subpc2 = map(pca, .f = function(x) {
-  rotation_matrix <- x$rotation
-  # subcloud coordinates of PC2 - all
-   rotation_matrix[, 2]
-}))
+rename_with(~ paste0("global_", .x), starts_with("PC")) |> 
+nest(mat = starts_with("global_PC")) |> 
+mutate(
+  sub_pca_unscaled = map(mat, prcomp, scale = F)
+  ) |> 
+select(-mat)
 ```
 
 ```{r}
 
-econ_pca <- sub_pca |> 
-  filter(freq_ford == "Physical sciences") |> 
-  pull(pca) |> 
-  pluck(1)
-pc1_scores <- econ_pca$x[, 1]
-econ_vedidks <- pca_projection |> 
-select(freq_ford, vedidk) |> 
-  filter(freq_ford == "Physical sciences") |> 
-  pull(vedidk)
-names(pc1_scores) <- econ_vedidks
-contributions_pc1 <- pc1_scores^2
-avg_contribution_pc1 <- mean(contributions_pc1)
-indices_above_avg <- which(contributions_pc1 > avg_contribution_pc1)
-positive_indices <- indices_above_avg[pc1_scores[indices_above_avg] > 0]
-positive_contributors <- tibble(
-  vedidk = names(pc1_scores)[positive_indices],
-  PC1_score = pc1_scores[positive_indices],
-  contribution = contributions_pc1[positive_indices],
-  direction = "positive"
-) |> 
-  arrange(desc(contribution))
+sub_pca_enriched <- sub_pca_df |> 
+  mutate(
+    subcloud_center_coords = map(sub_pca_unscaled, ~ .x$center),
+    local_pc1_explained_var = map_dbl(sub_pca_unscaled, ~ .x$sdev[1]^2/sum(.x$sdev^2)),
+    local_pc2_explained_var = map_dbl(sub_pca_unscaled, ~ .x$sdev[2]^2/sum(.x$sdev^2)),
+    local_sdev = map(sub_pca_unscaled, ~ .x$sdev),
+    global_pc_names = map(sub_pca_unscaled, ~ rownames(.x$rotation)), 
+    local_pc_1_2_cum_explained_var = local_pc1_explained_var + local_pc2_explained_var,
+    loading_vector_on_local_PC1 = map(sub_pca_unscaled, ~ .x$rotation[, 1]),
+    loading_vector_on_local_PC2 = map(sub_pca_unscaled, ~ .x$rotation[, 2]),
+    loading_global_pc1_on_local_PC1 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC1", "PC1"]),
+    loading_global_pc1_on_local_PC2 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC1", "PC2"]),
+    loading_global_pc2_on_local_PC1 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC2", "PC1"]),
+    loading_global_pc2_on_local_PC2 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC2", "PC2"]),
+        combined_contribution_to_localPC1 = loading_global_pc1_on_local_PC1^2 + loading_global_pc2_on_local_PC1^2,
+    total_variance = map_dbl(sub_pca_unscaled, ~ sum(.x$sdev^2))
+    ) |> 
+      select(-sub_pca_unscaled)
+```
 
-negative_indices <- indices_above_avg[pc1_scores[indices_above_avg] < 0]
-negative_contributors <- data.frame(
-  vedidk = names(pc1_scores)[negative_indices],
-  PC1_score = pc1_scores[negative_indices],
-  contribution = contributions_pc1[negative_indices],
-  direction = "negative"
-) |> 
-  arrange(desc(contribution))
+```{r}
+plot_data <- sub_pca_enriched |>
+  select(freq_ford, 
+  subcloud_center_coords, 
+  loading_global_pc1_on_local_PC1, 
+  loading_global_pc1_on_local_PC2,
+  loading_global_pc2_on_local_PC1, loading_global_pc2_on_local_PC2) |> 
+  mutate(
+    center_x = map_dbl(subcloud_center_coords, ~ .x[1]),
+    center_y = map_dbl(subcloud_center_coords, ~ .x[2]),
+    loc_pc1_x = loading_global_pc1_on_local_PC1*0.3,
+    loc_pc1_y = loading_global_pc2_on_local_PC1*0.3,
+    loc_pc2_x = loading_global_pc1_on_local_PC2*0.3,
+    loc_pc2_y = loading_global_pc2_on_local_PC2*0.3
+  ) |> 
+  select(-subcloud_center_coords)
 
-contributors <- bind_rows(positive_contributors, negative_contributors)
+plot_data |> 
+ggplot(aes(x = center_x, y = center_y, color = freq_ford)) +
+geom_point() +
+  geom_segment(
+    aes(
+      x = center_x - loc_pc1_x,
+      y = center_y - loc_pc1_y,
+      xend = center_x + loc_pc1_x,
+      yend = center_y + loc_pc1_y
+    ),
+    color = "red", linewidth = 1 ) +
+      theme(legend.position = "none") +
+      # PC 2 segment in global space
+  geom_segment(
+    aes(
+      x = center_x - loc_pc2_x,
+      y = center_y - loc_pc2_y,
+      xend = center_x + loc_pc2_x,
+      yend = center_y + loc_pc2_y
+    ),
+    color = "blue", linewidth = 1) +
+  coord_equal() +
+  theme_minimal() + 
+   theme(legend.position = "none") + # Keep or remove as needed
+
+  # Add axis labels - using generic names based on the plotting data
+  labs(x = "Global PC1", y = "Global PC2",
+       title = "Local PCA Axes within Global PCA Space")
+```
+
+```{r}
+
+# Assume sub_pca_enriched exists and includes:
+# freq_ford (or other subcloud ID column)
+# subcloud_center_coords (list-col of center vectors, assuming .x[1] is Global PC1, .x[2] is Global PC2 etc.)
+# local_sdev (list-col of sdev vectors)
+# loading_global_pc1_on_local_PC1, loading_global_pc2_on_local_PC1 (for Local PC1 direction)
+# loading_global_pc1_on_local_PC2, loading_global_pc2_on_local_PC2 (for Local PC2 direction)
+# global_pc_names (list-col of global PC names, rownames of rotation matrix) - useful for robust indexing
+
+# --- Adjust Data Preparation ---
+# We need the center coordinates and the scaled direction components for BOTH PC1 and PC2 segments.
+# The visual_scale_factor needs tuning based on your plot.
+
+# Set a visual scale factor (you will likely need to adjust this value after seeing the plot)
+visual_scale_factor <- 0.3 # <-- ADJUST THIS VALUE
+
+plot_data <- sub_pca_enriched |>
+  rowwise() |> # Operate row by row for list-column access
+  mutate(
+    # Get center coordinates for the plotting axes (Assuming Global PC1 is index 1, PC2 is index 2 in the center vector)
+    center_x = subcloud_center_coords[1],
+    center_y = subcloud_center_coords[2],
+
+    # Calculate scaled direction components for Local PC1
+    # Scale = sdev[1] * visual_scale_factor
+    # Direction components are loadings on Global PC1 and Global PC2 for Local PC1
+    lp1_dir_x_scaled = loading_global_pc1_on_local_PC1 * local_sdev[1] * visual_scale_factor,
+    lp1_dir_y_scaled = loading_global_pc2_on_local_PC1 * local_sdev[1] * visual_scale_factor, # CORRECTED: Use loading_global_pc2_on_local_PC1
+
+    # Calculate scaled direction components for Local PC2 (check if PC2 exists)
+    # Scale = sdev[2] * visual_scale_factor
+    # Direction components are loadings on Global PC1 and Global PC2 for Local PC2
+    # Handle cases where a subcloud might have < 2 PCs
+    lp2_dir_x_scaled = if (length(local_sdev) >= 2) {
+                         loading_global_pc1_on_local_PC2 * local_sdev[2] * visual_scale_factor
+                       } else { NA_real_ }, # Use NA_real_ for numeric NA
+    lp2_dir_y_scaled = if (length(local_sdev) >= 2) {
+                         loading_global_pc2_on_local_PC2 * local_sdev[2] * visual_scale_factor # CORRECTED: Use loading_global_pc2_on_local_PC2
+                       } else { NA_real_ }
+  ) |>
+  ungroup() |> # Stop rowwise operation
+  # Select only the columns needed for plotting segments and points
+  select(freq_ford, center_x, center_y,
+         lp1_dir_x_scaled, lp1_dir_y_scaled,
+         lp2_dir_x_scaled, lp2_dir_y_scaled)
+
+
+# --- Adjust ggplot Code ---
+
+# Plotting data will be 'plot_data' (for centers and segments).
+# If you want to show individual points in the background, you'll need your original M6 data
+# and ensure it has a 'Subcloud_ID' column matching 'freq_ford'.
+# Let's assume M6 is available and has a 'Subcloud_ID' column.
+
+# Identify the names of the Global PC columns in your M6 data frame for axis labels
+# Assuming M6 column names are "PC1", "PC2", etc.
+m6_global_pc_plot_x_name <- colnames(pca_projection)[1] # e.g. "PC1"
+m6_global_pc_plot_y_name <- colnames(pca_projection)[2] # e.g. "PC2"
+
+
+ggplot(plot_data, aes(x = center_x, y = center_y, color = freq_ford)) +
+  # Optional: Plot all individual points in the background
+  # Ensure M6 is available and has a Subcloud_ID column
+  # geom_point(data = M6, aes(x = !!sym(m6_global_pc_plot_x_name), y = !!sym(m6_global_pc_plot_y_name), color = Subcloud_ID),
+  #            alpha = 0.3, size = 0.5, show.legend = FALSE) + # Plot individuals, hide legend for them
+
+  geom_point() + # Plot centers
+
+  # Add Segment for Local PC1
+  geom_segment(
+    aes(
+      x = center_x - lp1_dir_x_scaled,
+      y = center_y - lp1_dir_y_scaled,
+      xend = center_x + lp1_dir_x_scaled,
+      yend = center_y + lp1_dir_y_scaled
+    ),
+    linewidth = 1,
+    # color = "red", # Moved to aes for coloring by subcloud
+    arrow = arrow(length = unit(0.2, "cm")) # Optional: Add arrow heads to show direction
+  ) +
+
+  # Add Segment for Local PC2
+  geom_segment(
+    aes(
+      x = center_x - lp2_dir_x_scaled,
+      y = center_y - lp2_dir_y_scaled,
+      xend = center_x + lp2_dir_x_scaled,
+      yend = center_y + lp2_dir_y_scaled
+    ),
+    linewidth = 1,
+    linetype = "dashed", # Use a different line style for PC2
+    # color = "red", # Moved to aes
+    arrow = arrow(length = unit(0.2, "cm")) # Optional: Add arrow heads
+  ) +
+
+  # Use coord_equal() to ensure angles are represented correctly
+  coord_equal() +
+
+  # Add labels and title
+  labs(x = m6_global_pc_plot_x_name, # Use actual Global PC names
+       y = m6_global_pc_plot_y_name, # Use actual Global PC names
+       title = paste("Local PCA Axes within Global PCA Space (", m6_global_pc_plot_x_name, " vs ", m6_global_pc_plot_y_name, ")"),
+       color = "Subcloud ID", # Label for subcloud color legend
+       linetype = "Local PC") + # Label for Local PC line type legend
+
+  theme_minimal()+
+   theme(legend.position = "none") # Keep legend to distinguish subclouds and PCs
+
+```
+
+
+```{r}
+sub_pca_enriched$loading_vector_on_local_PC1
+loadings_list <- map(sub_pca_df$sub_pca_unscaled, .f =function(pca_object) {
+ # Extract loadings of global PCs on local PCs
+  loadings <- as_tibble(pca_object$rotation[, 1:2])  |> 
+  rename_with(~ paste0("local_", .x), starts_with("PC")) 
+  loadings$contributing_variable <- rownames(pca_object$rotation)
+  local_pc1 <- pca_object$rotation[, 1]
+  local_pc2 <- pca_object$rotation[, 2]
+  total_explained_var <- sum(pca_object$sdev^2)
+  local_pc1_explained_var <- pca_object$sdev[1]^2/total_explained_var
+  local_pc2_explained_var <- pca_object$sdev[2]^2/total_explained_var
+  list(
+    loadings = loadings, 
+    local_pc1 = list(local_pc1), 
+    local_pc2 = list(local_pc2),
+    local_pc1_explained_var = local_pc1_explained_var,
+    local_pc2_explained_var = local_pc2_explained_var
+  )
+})
+
+names(loadings_list) <- sub_pca_df$freq_ford
+loadings_list[["Basic medicine"]]
+contributions_global_PC <- bind_rows(map(loadings_list, c( "local_pc2_explained_var", "local_pc1_explained_var"), .id = "freq_ford")) |> 
+  # filter(variable %in% c("global_PC1", "global_PC2")) |> 
+  select(freq_ford, contributing_variable, local_PC1, local_PC2) |> 
+  arrange(desc(abs(local_PC1))) 
+
+contributions_global_PC |> 
+  mutate(local_PC1 = abs(local_PC1)) |>
+  filter(freq_ford == "Biological sciences") |> View()
+
 ```
 
 ```{r}
@@ -177,7 +338,7 @@ sub_pca$freq_ford
 soc_vec1 <- sub_pca |> 
   #filter(freq_ford == "Economics and Business") |> 
   #filter(freq_ford == "Sociology") |> 
-  filter(freq_ford == "Physical sciences") |> 
+  filter(freq_ford == "Biological sciences") |> 
   #filter(freq_ford == "Mathematics") |> 
   #filter(freq_ford == "History and Archaeology") |> 
   #filter(freq_ford == "Biological sciences") |> 
@@ -265,7 +426,8 @@ non_contributors_vec <- non_contributors_means + non_contributors_sd_vec
 contributors_topics_indices <- which(frequency_scores_vec_contr > 0.75)
 
 contributor_topics <- names(contributors_means)[contributors_topics_indices]
-econ_topics <- frequency_scores_df |>  dplyr::filter(topic %in% contributor_topics) 
+econ_topics <- frequency_scores_df |>  dplyr::filter(topic %in% contributor_topics) |> 
+  dplyr::filter(score > 0 & score < 1)
 head(econ_topics, n = 20)
 tail(econ_topics, n = 20) |> arrange(score)
 ```
