@@ -59,4 +59,7 @@ abstract.pdf
 *.qs
 *.RDS
 *.png
+*.arrow
+*.feather
 wip.qmd
+.vdoc*
