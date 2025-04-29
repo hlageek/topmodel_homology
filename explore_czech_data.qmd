@@ -11,9 +11,7 @@ lib_require("here")
 lib_require("arrow")
 ```
 
-For simplicity's sake, I am downloading an already calculated PCA projection of individuals. 
-One thing to note is that this data object only contains 10 PC components.
-It would have been better to use all PCs, but for exploration, this should be enough. 
+For simplicity's sake, I am downloading an already calculated PCA projection of individuals (should be 42 PCs for 42 disciplinary categories).
 
 ```{r}
 pca_data <- list(
