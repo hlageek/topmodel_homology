@@ -11,7 +11,9 @@ lib_require("here")
 lib_require("arrow")
 ```
 
-For simplicity's sake, I am downloading an already calculated PCA projection of individuals. One thing to note is that this data object only contains 10 PC components. It would have been better to use all PCs, but for exploration, this should be enough. 
+For simplicity's sake, I am downloading an already calculated PCA projection of individuals. 
+One thing to note is that this data object only contains 10 PC components.
+It would have been better to use all PCs, but for exploration, this should be enough. 
 
 ```{r}
 pca_data <- list(
@@ -22,12 +24,60 @@ data_require(pca_data)
 pca_projection <- as_tibble(readRDS(pca_data$path))
 ```
 
+This is the original PC object with topics in rows and disciplines in columns 
+```{r}
+pca_src_data <- list(
+  source = "https://owncloud.cesnet.cz/index.php/s/Bf3Qqn2S2GX1AEL/download",
+  path = here::here("data", "pca_src.RDS")
+)
+data_require(pca_src_data)
+pca_src <- readRDS(pca_src_data$path)
+```
+
+Download topic distributions.
+
+```{r}
+topmodel_data <- list(
+  source = "https://osf.io/download/45f2b/",
+  path = here::here("data", "topic_model_202207170249_topics_level_1.feather")
+)
+data_require(topmodel_data)
+topmodel <- arrow::read_feather(topmodel_data$path) |> select(-level)
+```
+
+Download document distributions.
+
+```{r}
+docmodel_data <- list(
+  source = "https://osf.io/download/hvqs9/",
+  path = here::here("data", "topic_model_202207170249_documents_level_1.feather")
+)
+data_require(docmodel_data)
+docmodel <- arrow::read_feather(docmodel_data$path) |> rename(id_unique = doc) |> mutate(id_unique = as.integer(id_unique))
+```
+
+Download people-papers.
+
+```{r}
+people_pubs_data <- list(
+  source = "https://osf.io/download/ynxsg/",
+  path = here::here("data", "authors_by_pubs.arrow")
+)
+data_require(people_pubs_data)
+people_pubs <- arrow::read_feather(people_pubs_data$path) 
+```
 
 This is the tricky part of the code where we try to obtain the eigenvectors of the principal components of the sub-clouds as they would appear in the original set of coordinates. 
+Specifically, what happens here
+
+- the dataframe is nested by discipline (disciplinary subclouds)
+- a new PCA runs for each nested block (with original PCA coordinates as variables)
+- for each block, we extract some information from its specific PCA
 
 ```{r}
 sub_pca <- pca_projection |> 
 select(freq_ford, starts_with("PC")) |> 
+mutate(across(starts_with("PC"), ~scale(.x))) |> 
 rename_with(~ paste0("orig_", .x), starts_with("PC")) |> 
 nest(mat = starts_with("orig_PC")) |> 
 mutate(pca = map(mat, prcomp, scale = F)) |> 
@@ -38,16 +88,236 @@ mutate(axis1 = map(pca, .f = function(x) {
 }),
 axis2 = map(pca, .f = function(x) {
   rotation_matrix <- x$rotation
-  # subcloud coordinates of PC2
+  # subcloud directions of PC1 and PC2
   c(x_coord = rotation_matrix[1, 2], y_coord = rotation_matrix[2, 2])
+})) |> 
+mutate(subpc1 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC1 - all
+   rotation_matrix[, 1]
+}),
+subpc2 = map(pca, .f = function(x) {
+  rotation_matrix <- x$rotation
+  # subcloud coordinates of PC2 - all
+   rotation_matrix[, 2]
 }))
 ```
 
-Here we just transform the coordinates we have obtained above into some workable form. 
+```{r}
+
+econ_pca <- sub_pca |> 
+  filter(freq_ford == "Physical sciences") |> 
+  pull(pca) |> 
+  pluck(1)
+pc1_scores <- econ_pca$x[, 1]
+econ_vedidks <- pca_projection |> 
+select(freq_ford, vedidk) |> 
+  filter(freq_ford == "Physical sciences") |> 
+  pull(vedidk)
+names(pc1_scores) <- econ_vedidks
+contributions_pc1 <- pc1_scores^2
+avg_contribution_pc1 <- mean(contributions_pc1)
+indices_above_avg <- which(contributions_pc1 > avg_contribution_pc1)
+positive_indices <- indices_above_avg[pc1_scores[indices_above_avg] > 0]
+positive_contributors <- tibble(
+  vedidk = names(pc1_scores)[positive_indices],
+  PC1_score = pc1_scores[positive_indices],
+  contribution = contributions_pc1[positive_indices],
+  direction = "positive"
+) |> 
+  arrange(desc(contribution))
+
+negative_indices <- indices_above_avg[pc1_scores[indices_above_avg] < 0]
+negative_contributors <- data.frame(
+  vedidk = names(pc1_scores)[negative_indices],
+  PC1_score = pc1_scores[negative_indices],
+  contribution = contributions_pc1[negative_indices],
+  direction = "negative"
+) |> 
+  arrange(desc(contribution))
+
+contributors <- bind_rows(positive_contributors, negative_contributors)
+```
+
+```{r}
+contributors_pubs <- contributors |> 
+  left_join(people_pubs |> select(vedidk, id_unique), by = join_by(vedidk)) |> 
+  inner_join(docmodel, by = join_by(id_unique))
+
+mean_topic_dist <- contributors_pubs |> 
+  select(direction, starts_with("topic")) |> 
+  summarise(across(starts_with("topic"), mean), .by = direction) 
+positive_vec <- mean_topic_dist |>
+                filter(direction == "positive") |> 
+                select(-direction) |> 
+                as.numeric()
+negative_vec <- mean_topic_dist |>
+                filter(direction == "negative") |> 
+                select(-direction) |> 
+                as.numeric()
+denominator_vec <- positive_vec + negative_vec
+
+frequency_scores_vec <- ifelse(denominator_vec > 0,
+                                 positive_vec / denominator_vec,
+                                 0.5)
+topic_names <- name_topics(topmodel)
+
+frequency_scores_df <- tibble(
+    topic = colnames(mean_topic_dist |>
+                select(-direction)),
+    score = frequency_scores_vec
+  ) |> 
+    arrange(desc(score)) |> 
+    left_join(topic_names, by = join_by(topic))
+```
+
+
+```{r}
+sub_pca$freq_ford
+soc_vec1 <- sub_pca |> 
+  #filter(freq_ford == "Economics and Business") |> 
+  #filter(freq_ford == "Sociology") |> 
+  filter(freq_ford == "Physical sciences") |> 
+  #filter(freq_ford == "Mathematics") |> 
+  #filter(freq_ford == "History and Archaeology") |> 
+  #filter(freq_ford == "Biological sciences") |> 
+  #filter(freq_ford == "Basic medicine") |> 
+  pull(subpc1) |> 
+  unlist()
+#soc_vec1 <- soc_vec1[1:2]
+cosine_similarity <- function(vec1, vec2) {
+  # Normalize the vectors
+  vec1_normalized <- vec1 / sqrt(sum(vec1^2))
+  vec2_normalized <- vec2 / sqrt(sum(vec2^2))
+  
+  # Calculate the cosine similarity
+  sum(vec1_normalized * vec2_normalized)
+}
+
+# Apply the function to each row of the matrix
+cosine_values <- apply(pca_src$x[, 1:10], 1, function(row) cosine_similarity(soc_vec1, row))
+
+soc_cos <- enframe(cosine_values, "topic", "cosine") |> 
+  arrange(desc(cosine))
+
+topic_coords <- pca_src$x[, 1:2] |> 
+  tibble::as_tibble(rownames = "topic")
+
+stats_pos <- soc_cos %>% filter(cosine > 0) %>% summarise(mean_pos = mean(cosine), sd_pos = sd(cosine))
+stats_neg <- soc_cos %>% filter(cosine < 0) %>% summarise(mean_neg = mean(cosine), sd_neg = sd(cosine))
+
+mean_pos <- stats_pos$mean_pos
+sd_pos <- stats_pos$sd_pos
+mean_neg <- stats_neg$mean_neg
+sd_neg <- stats_neg$sd_neg
+
+
+
+contributing_topics <- soc_cos |> 
+  filter((cosine > 0 & cosine > mean_pos + sd_pos) | (cosine < 0 & cosine < mean_neg - sd_neg)) |> 
+  #  filter(cosine > (mean_pos + sd_pos)) |> 
+  left_join(topic_names) |> 
+  left_join(topic_coords) |> 
+  mutate(topic_desc = map_chr(topic_desc, ~paste(stringr::word(.x, 1:2), collapse = " "))) |> 
+  mutate(abs_cosine = abs(cosine)) |> 
+  mutate(pole = ifelse(cosine > 0, "pos", "neg")) 
+  #filter(pole == "neg") |> 
+
+
+contributing_topics <- soc_cos |> 
+  filter(cosine > 0.1) 
+
+contributing_topics |> 
+  inner_join(frequency_scores_df, join_by(topic)) |> 
+  filter(score > 0 & score < 1) |> 
+  View()
+  
+  
+  ggplot(aes(PC1, PC2)) +
+  geom_abline(slope = soc_vec1[2]/soc_vec1[1], intercept = 0, color = "red") + 
+  #geom_point(aes(soc_vec1[1], soc_vec1[2])) +
+  geom_text(aes(label = topic_desc, size = abs_cosine, color = pole)) 
+
+```
+
+```{r}
+contributors_means <- contributors_pubs |> 
+  select(starts_with("topic")) |> 
+  colMeans()
+
+non_contributors <- docmodel |> 
+  filter(!id_unique %in% contributors_pubs$id_unique)  
+
+non_contributors_means <- docmodel |> 
+  select(starts_with("topic")) |> 
+  colMeans()
+# non_contributors_sd <- non_contributors |> 
+#   select(starts_with("topic")) |> 
+#   summarise(across(everything(), sd))
+
+denominator_vec_contr <- contributors_means + non_contributors_means
+
+frequency_scores_vec_contr <- ifelse(denominator_vec_contr > 0,
+                                 contributors_means / denominator_vec_contr,
+                                 0.5)
+non_contributors_sd_vec <- as.numeric(non_contributors_sd[1,])
+non_contributors_vec <- non_contributors_means + non_contributors_sd_vec
+contributors_topics_indices <- which(frequency_scores_vec_contr > 0.75)
+
+contributor_topics <- names(contributors_means)[contributors_topics_indices]
+econ_topics <- frequency_scores_df |>  dplyr::filter(topic %in% contributor_topics) 
+head(econ_topics, n = 20)
+tail(econ_topics, n = 20) |> arrange(score)
+```
+
+PCA with topics in cols
+```{r}
+econ_top_df <- contributors_pubs |> 
+  select(vedidk, starts_with("topic")) |> 
+  summarise(across(starts_with("topic"), mean), .by = vedidk)
+
+econ_top_clr <- compositions::clr(scale(as.matrix(econ_top_df[,-1])))
+
+econ_top_pca <- prcomp(econ_top_clr)
+
+econ_top_res <- as_tibble(econ_top_pca$rotation, rownames = "topic") |> 
+  select(topic, PC1, PC2) |> 
+  left_join(topic_names) |> 
+  arrange(desc(PC1))
+
+
+head(econ_top_res, n = 20)
+tail(econ_top_res, n = 20) |> arrange(PC1)
+
+head(econ_top_res |>  dplyr::filter(topic %in% contributor_topics), n = 20)
+tail(econ_top_res |>  dplyr::filter(topic %in% contributor_topics), n = 20) |> arrange(PC1)
+
+
+
+econ_top_df_reduced <- econ_top_df[, contributor_topics]
+econ_top_clr_reduced <- compositions::clr(
+  scale(
+    compositions::clo(as.matrix(econ_top_df[,-1])) 
+    )
+    )
+econ_top_pca_reduced <- prcomp(econ_top_clr_reduced)
+
+econ_top_res_reduced <- as_tibble(econ_top_pca_reduced$rotation, rownames = "topic") |> 
+  select(topic, PC1, PC2) |> 
+  left_join(topic_names) |> 
+  arrange(desc(PC1))
+
+head(econ_top_res_reduced, n = 20)
+tail(econ_top_res_reduced, n = 20) |> arrange(PC1)
+
+```
+
+
+Here we just transform the specific coordinates we have obtained above into some workable form. 
 ```{r}
 plot_data <- sub_pca |>
   select(freq_ford, axis1, axis2) |>
-  unnest_longer(starts_with("axis")) |>
+  tidyr::unnest_longer(starts_with("axis")) |>
   pivot_wider(names_from = c(axis1_id, axis2_id),
               values_from = c(axis1, axis2)) |>
   rename("axis1_x" = 2, "axis1_y" = 3, "axis2_x" = 4, "axis2_y" = 5) 
@@ -72,11 +342,18 @@ disc_retained <- c(
   "Health sciences" 
 )
 glob_data <- pca_projection |>
+mutate(across(starts_with("PC"), ~scale(.x))) |> 
+
     filter(pubs_total >= 5)  |> 
     select(PC1, PC2, freq_ford, freq_field)
 
 glob_means <- glob_data |> 
-summarise(mean_pc1 = mean(PC1), mean_pc2 = mean(PC2), .by = freq_ford)  |> 
+summarise(
+  mean_pc1 = mean(PC1), 
+  mean_pc2 = mean(PC2), 
+  norm_mean_pc1 = mean(scale(PC1)), 
+  norm_mean_pc2 = mean(scale(PC2)), 
+  .by = freq_ford)  |> 
 left_join(
   plot_data
 )
@@ -141,4 +418,217 @@ Save the plot because it has too many points to be displayed interactively.
 ```{r}
 ggsave(here::here("output", "figures", "plot.png"), plot_all, width = 12, height = 8, bg = "white")
 ``` 
+
+
+```{r}
+topic_names <- name_topics(topmodel)
+
+``` 
+
+```{r}
+loadings_df <- as_tibble(pca_src$rotation) |>  
+select(PC1, PC2) |> 
+mutate(freq_ford = rownames(pca_src$rotation)) |> 
+  mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+left_join(
+  plot_data_expanded |> 
+  select(freq_ford, starts_with("axis")) |> 
+  distinct() |> 
+  select(-starts_with("PC"))|> 
+  mutate(freq_ford = abbrev_discs(freq_ford))
+  )  |> 
+  mutate(freq_ford_2 = ifelse(is.na(axis1_x), "other", freq_ford)) |> 
+  mutate(across(starts_with("axis"), ~.x*0.3)) |> 
+  na.omit() |> 
+  select(-freq_ford) |> 
+  mutate(others = list(as_tibble(pca_src$rotation) |>  
+select(PC1x = PC1, PC2y = PC2) |> 
+mutate(freq_ford = rownames(pca_src$rotation)) |> 
+  mutate(freq_ford_1 = abbrev_discs(freq_ford)) )) |> 
+  unnest(cols = "others")
+```
+
+Original Loadings
+```{r}
+# Plot loadings
+ggplot(loadings_df, aes(x = PC1x, y = PC2y)) +
+  geom_point() +
+  geom_text(aes(label = freq_ford), size = 2.5, hjust = 1.1, vjust = 1.1) +
+    geom_segment(
+    aes(
+      x = 0 - axis1_x,
+      y = 0 - axis1_y,
+      xend = 0 + axis1_x,
+      yend =  axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+    aes(
+      x = 0 - axis2_x,
+      y = 0 - axis2_y,
+      xend = 0 + axis2_x,
+      yend =  axis2_y
+    ), color = "blue", linewidth = 1 ) +
+  labs(title = "", x = "PC1", y = "PC2") +
+  theme_minimal() +
+  facet_wrap(~freq_ford_2)
+``` 
+
+original scores
+```{r}
+scores_df <- as_tibble(pca_src$x) |>  
+  select(PC1, PC2) |> 
+  mutate(topic = rownames(pca_src$x)) |> 
+  left_join(
+    topic_names  |> 
+    mutate(topic_desc = stringr::str_trunc(topic_desc, 10))
+  ) 
+coords_df <-   plot_data_expanded |> 
+  select(freq_ford, starts_with("axis")) |> 
+  distinct() |> 
+  select(-starts_with("PC"))
+
+topic_plot <- ggplot(scores_df, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc),check_overlap = TRUE,size = 2) +
+    geom_segment(
+      data = coords_df |>  mutate(across(starts_with("axis"), ~.x*5)),
+    aes(
+      x = 0 - axis1_x,
+      y = 0 - axis1_y,
+      xend = 0 + axis1_x,
+      yend =  axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+           data = coords_df|>  mutate(across(starts_with("axis"), ~.x*4)),
+    aes(
+      x = 0 - axis2_x,
+      y = 0 - axis2_y,
+      xend = 0 + axis2_x,
+      yend =  axis2_y
+    ), color = "blue", linewidth = 1 ) +
+  labs(title = "", x = "PC1", y = "PC2") +
+  theme_minimal() 
+topic_plot +
+  facet_wrap(~freq_ford)
+```
+
+
+```{r}
+# Create the plot
+ellipses_plot <- glob_data |> 
+  filter(freq_ford %in% disc_retained) |> 
+  mutate(PC1 = scale(PC1), PC2 = scale(PC2)) |> 
+  ggplot(aes(PC1, PC2, group = freq_ford, color = freq_ford)) +
+  geom_point(data = glob_data |> mutate(PC1 = scale(PC1), PC2 = scale(PC2)), color = "lightgrey") +
+  stat_ellipse(type = "norm") +
+  theme_minimal()
+
+# Extract the ellipse data
+ellipse_data <- ggplot_build(ellipses_plot)$data[[2]]
+
+# Create a mapping from group numbers to freq_ford labels
+group_mapping <- glob_data |> 
+  filter(freq_ford %in% disc_retained) |> 
+  distinct(freq_ford) |> 
+  mutate(group = as.numeric(as.factor(freq_ford)))
+
+# Ensure the group names are correctly assigned to the ellipse data
+ellipse_coords <- ellipse_data |> 
+  select(x, y, group) |> 
+  left_join(group_mapping, by = "group") |> 
+  mutate(freq_ford = abbrev_discs(freq_ford))
+
+# You can now use these coordinates in another plot
+scores_df |> 
+  mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) |> 
+  ggplot(aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc), check_overlap = TRUE, size = 2) +
+  geom_path(data = ellipse_coords, 
+  aes(x, y, group = group, color = freq_ford)) +
+  theme_minimal()
+
+```
+
+
+```{r}
+scores_df_norm <- scores_df  |> 
+mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) 
+
+glob_means_norm <- glob_means |> 
+  mutate(across(where(is.numeric), scale))|> 
+  mutate(freq_ford = abbrev_discs(freq_ford))
+
+# Function to check if a point is inside a polygon using the ray-casting algorithm
+is_point_in_polygon <- function(point, polygon) {
+  n <- nrow(polygon)
+  inside <- FALSE
+  j <- n
+  for (i in 1:n) {
+    if (((polygon$y[i] > point[2]) != (polygon$y[j] > point[2])) &&
+        (point[1] < (polygon$x[j] - polygon$x[i]) * (point[2] - polygon$y[i]) / (polygon$y[j] - polygon$y[i]) + polygon$x[i])) {
+      inside <- !inside
+    }
+    j <- i
+  }
+  return(inside)
+}
+
+unique(ellipse_coords$freq_ford)
+focal_disc <- "PhysicalSci"
+# Filter ellipse_coords for the specific group
+ellipse_coords_langlit <- ellipse_coords |> filter(freq_ford == focal_disc)
+
+# Filter scores_df_norm for points within the ellipse
+scores_within_ellipse <- scores_df_norm |> 
+  rowwise() |> 
+  filter(is_point_in_polygon(c(PC1, PC2), ellipse_coords_langlit))  |> 
+  ungroup()
+
+axis_means <- scores_within_ellipse |> 
+  summarise(PC1x = mean(PC1), PC2y = mean(PC2))
+
+axis_means <- glob_means_norm |> 
+filter(freq_ford == focal_disc) |> 
+rename("PC1x" = 2, "PC2y" = 3)
+
+axis_means <- glob_data |> 
+  mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+summarise(PC1x = mean(scale(PC1)), PC2y = mean(scale(PC2)), .by = freq_ford)  |> 
+filter(freq_ford == focal_disc)
+
+axis_means <- glob_means|> 
+  mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+  filter(freq_ford == focal_disc)  |> 
+  select("PC1x" = norm_mean_pc1, "PC2y" = norm_mean_pc2)
+
+axis_means <- tibble(PC1x = 0, PC2y = 0)
+scores_within_ellipse <- scores_within_ellipse |> 
+mutate(PC1 = scale(PC1)[,1], PC2 = scale(PC2)[,1]) 
+
+coords_df_norm <- coords_df |> 
+mutate(freq_ford = abbrev_discs(freq_ford)) |> 
+filter(freq_ford == focal_disc) 
+
+
+# Plot the observations that fall within the ellipse by group
+ggplot(scores_within_ellipse, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = topic_desc), check_overlap = TRUE, size = 3) +
+        geom_segment(
+      data = coords_df_norm |>  mutate(across(starts_with("axis"), ~.x)),
+    aes(
+      x = axis_means$PC1x - axis1_x,
+      y = axis_means$PC2y  - axis1_y,
+      xend = axis_means$PC1x + axis1_x,
+      yend =  axis_means$PC2y + axis1_y
+    ), color = "red", linewidth = 1 ) +
+        geom_segment(
+           data = coords_df_norm|>  mutate(across(starts_with("axis"), ~.x)),
+    aes(
+      x = axis_means$PC1x - axis2_x,
+      y = axis_means$PC2y - axis2_y,
+      xend = axis_means$PC1x + axis2_x,
+      yend = axis_means$PC2y + axis2_y
+    ), color = "blue", linewidth = 1 ) +
+    theme_minimal()
+
+```
 
