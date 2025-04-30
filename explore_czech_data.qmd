@@ -108,6 +108,7 @@ sub_pca_enriched <- sub_pca_df |>
 first plot
 
 ```{r}
+scaling_factor <- 0.3
 plot_data <- sub_pca_enriched |>
   select(freq_ford, 
   subcloud_center_coords, 
@@ -117,10 +118,9 @@ plot_data <- sub_pca_enriched |>
   mutate(
     center_x = map_dbl(subcloud_center_coords, ~ .x[1]),
     center_y = map_dbl(subcloud_center_coords, ~ .x[2]),
-    loc_pc1_x = loading_global_pc1_on_local_PC1*0.3,
-    loc_pc1_y = loading_global_pc2_on_local_PC1*0.3,
-    loc_pc2_x = loading_global_pc1_on_local_PC2*0.3,
-    loc_pc2_y = loading_global_pc2_on_local_PC2*0.3
+    loc_pc1_x = loading_global_pc1_on_local_PC1 * scaling_factor,
+    loc_pc1_y = loading_global_pc2_on_local_PC1 * scaling_factor,   loc_pc2_x = loading_global_pc1_on_local_PC2 * scaling_factor,
+    loc_pc2_y = loading_global_pc2_on_local_PC2 * scaling_factor
   ) |> 
   select(-subcloud_center_coords)
 
@@ -145,9 +145,10 @@ geom_point() +
       yend = center_y + loc_pc2_y
     ),
     color = "blue", linewidth = 1) +
-  coord_equal() +
+  #coord_equal() +
   theme_minimal() + 
    theme(legend.position = "none") + 
   labs(x = "Global PC1", y = "Global PC2",
-       title = "Local PCA Axes within Global PCA Space")
+       title = "Local PCA Axes within Global PCA Space") +
+        facet_wrap(~ freq_ford, scales = "free")
 ```
