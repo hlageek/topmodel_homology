@@ -1,0 +1,57 @@
+---
+title: "Engaging with homologies in position-takings: towards a sociological appropriation of topic models"
+params:
+  disciplines_by_sdev:
+    value: null
+    description: "Disciplines by sdev"
+---
+
+## Introduction
+
+- why study homologies in position-takings
+
+## The space of position-takings
+
+- definition
+- relation of spaces and fiels
+- 
+### Role of language / linguistic market
+
+- "linguistic market" – how different ways of speaking/writing hold different values within a field
+- symbolic capital - how linguistic choices reflect and shape an actor's position and authority within the field
+- the space of possible position-takings
+
+### Challenges for representing position-takings
+
+- large volumes of text 
+- complexity of capturing meanings in language
+- qualitative methods difficult to map onto quantitative models
+  
+### Topic models as tools for position-taking analysis
+
+- probabilistic approach
+
+#### Topic modeling method
+
+#### Sociological relevance of topic modeling
+
+## Study of position-takings in the scientific field
+
+- which disciplines look the most like the global scientific field?
+
+### Data an methods
+
+### Results
+
+```{r}
+#| echo: false # Optional: Hides the R code in the output
+#| results: asis
+knitr::kable(params$disciplines_by_sdev)
+```
+
+
+## Discussion
+
+### Homologies in position-takings
+
+### Sociological appropriation of topic models

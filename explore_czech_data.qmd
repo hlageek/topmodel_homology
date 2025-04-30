@@ -2,14 +2,20 @@
 title: "Exploration of Czech data"
 ---
 
+## Setup
+
 This is intended as an exploration of the dataset published in Poetics. The dataset could be used for comparison of disciplines and the general scientific field. 
 
 ```{r}
 lapply(list.files(here::here("R"), full.names = T), source)
+lib_require("tidytable")
 lib_require("tidyverse")
 lib_require("here")
 lib_require("arrow")
 ```
+
+
+## Data
 
 For simplicity's sake, I am downloading an already calculated PCA projection of individuals (should be 42 PCs for 42 disciplinary categories).
 
@@ -43,6 +49,16 @@ data_require(topmodel_data)
 topmodel <- arrow::read_feather(topmodel_data$path) |> select(-level)
 ```
 
+Reshaping the representation of topics for easier presentation and handling.
+
+```{r}
+topic_names <- name_topics(topmodel)
+max_terms <- 5
+topic_names_reduced <- topic_names |>
+  mutate(topic_desc = map_chr(topic_desc, ~paste(na.omit(str_extract_all(.x, "\\b\\w+\\b")[[1]][1:max_terms]), collapse = " ")))
+rm(topmodel)
+``` 
+
 Download document distributions.
 
 ```{r}
@@ -51,7 +67,6 @@ docmodel_data <- list(
   path = here::here("data", "topic_model_202207170249_documents_level_1.feather")
 )
 data_require(docmodel_data)
-docmodel <- arrow::read_feather(docmodel_data$path) |> rename(id_unique = doc) |> mutate(id_unique = as.integer(id_unique))
 ```
 
 Download people-papers.
@@ -62,19 +77,40 @@ people_pubs_data <- list(
   path = here::here("data", "authors_by_pubs.arrow")
 )
 data_require(people_pubs_data)
-people_pubs <- arrow::read_feather(people_pubs_data$path) 
+```
+
+```{r}
+people_pubs_portfolios <-  arrow::read_feather(people_pubs_data$path) |>
+      select(vedidk, id_unique) |>
+      inner_join(
+        arrow::read_feather(docmodel_data$path) |> 
+          rename(id_unique = doc) |> 
+          mutate(id_unique = as.integer(id_unique)),
+          by = "id_unique"
+          ) |>  
+      tidytable::as_tidytable()
+people_portfolios <- people_pubs_portfolios |>
+  tidytable::summarise(tidytable::across(tidytable::starts_with("topic"), mean), .by = "vedidk") |> 
+  as_tibble()
+rm(people_pubs_portfolios)
 ```
 
 
+## Subclouds PCA
 
 - the dataframe is nested by discipline (disciplinary subclouds)
 - a new PCA runs for each nested block (with original PCA coordinates as variables)
 
 ```{r}
 sub_pca_df <- pca_projection |> 
-select(freq_ford, starts_with("PC")) |> 
+select(freq_ford, vedidk, starts_with("PC")) |> 
 rename_with(~ paste0("global_", .x), starts_with("PC")) |> 
-nest(mat = starts_with("global_PC")) |> 
+nest(mat = c(starts_with("global_PC"), vedidk)) |> 
+mutate(mat = map(mat, .f  = \(x) {
+    y <- as.matrix(select(x, -vedidk))
+    rownames(y) <- x$vedidk
+    return(y)
+})) |>
 mutate(
   sub_pca_unscaled = map(mat, prcomp, scale = F)
   ) |> 
@@ -100,7 +136,8 @@ sub_pca_enriched <- sub_pca_df |>
     loading_global_pc2_on_local_PC1 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC2", "PC1"]),
     loading_global_pc2_on_local_PC2 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC2", "PC2"]),
         combined_contribution_to_localPC1 = loading_global_pc1_on_local_PC1^2 + loading_global_pc2_on_local_PC1^2,
-    total_variance = map_dbl(sub_pca_unscaled, ~ sum(.x$sdev^2))
+    total_variance = map_dbl(sub_pca_unscaled, ~ sum(.x$sdev^2)),
+    disc_people = map(sub_pca_unscaled, ~ .x$x)
     ) |> 
       select(-sub_pca_unscaled)
 ```
@@ -151,4 +188,122 @@ geom_point() +
   labs(x = "Global PC1", y = "Global PC2",
        title = "Local PCA Axes within Global PCA Space") +
         facet_wrap(~ freq_ford, scales = "free")
+```
+
+This is a difficult section that runs for ages, so be patient.
+We needed to do to find
+1) topics overrepresented in a discipline 
+2) among those overrepresented in a discipline, topics, topics that are overrepresented at the extremes of the 1st PC of a disciplinary subcloud
+
+```{r}
+
+subcloud_topics <- sub_pca_enriched |> 
+  select(freq_ford, disc_people) |>
+    mutate(
+        disc_topics = map(disc_people, .f = \(x) {
+      numerator_vec <- people_portfolios |> 
+        filter(vedidk %in% rownames(x)) |>
+        summarise(across(starts_with("topic"), mean)) 
+      denominator_vec <- people_portfolios |> 
+        filter(!vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean)) |> 
+        bind_rows(numerator_vec) |>
+        colSums()
+      disc_scores <- ifelse(denominator_vec > 0,
+                                 colSums(numerator_vec) / denominator_vec,
+                                 0.5)
+      avg_disc_scores <- mean(disc_scores)
+      sd_disc_scores <- sd(disc_scores)
+      threshold <- avg_disc_scores + sd_disc_scores
+      disc_scores[disc_scores > threshold]
+    })) |> 
+  mutate(
+    positive_people = map(disc_people, process_subcloud_people, pc = 1, direction = "positive"),
+    negative_people = map(disc_people, process_subcloud_people, pc = 1, direction = "negative")    
+    ) |> 
+  mutate(
+        topic_avg_positive = map(positive_people, .f = \(x) {
+      people_portfolios |> 
+        filter(vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean))
+    }),
+        topic_avg_negative = map(negative_people, .f = \(x) {
+      people_portfolios |> 
+        filter(vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean))
+    }
+  )
+  )
+```
+
+
+```{r}
+subcloud_overepresentation <- subcloud_topics |> 
+  select(freq_ford, disc_topics, topic_avg_positive, topic_avg_negative) |> 
+  mutate(topic_scores = map2(topic_avg_positive, topic_avg_negative, \(x, y) {
+  numerator_vec <- colSums(x) 
+  denominator_vec <- colSums(x) + colSums(y)
+    ifelse(denominator_vec > 0,                                numerator_vec / denominator_vec, 0.5)
+  })  
+  ) |> 
+    mutate(
+      topic_scores = map2(disc_topics, topic_scores, \(disc_topics, topic_scores) {
+        # only take disciplinary relevant topics
+        topic_scores <- topic_scores[names(disc_topics)]
+        # only take shared topics and topics that are not completely neutral (typically 0 in that discipline)
+        topic_scores <- topic_scores[topic_scores > 0 & topic_scores < 0.5 | topic_scores > 0.5 & topic_scores < 1]
+      })
+    ) |> 
+    select(freq_ford, topic_scores) |> 
+    mutate(
+      positive_topics = map(topic_scores, \(x) {
+        unlist(x) |> 
+        enframe("topic", "score") |> 
+        filter(score > 0.5) |>
+        arrange(desc(score)) |> 
+        left_join(topic_names_reduced, by = "topic") 
+      }),
+      negative_topics = map(topic_scores, \(x) {
+        unlist(x) |> 
+        enframe("topic", "score") |> 
+        filter(score < 0.5) |>
+        arrange(score) |> 
+        left_join(topic_names_reduced, by = "topic") 
+      })
+    ) |> 
+      select(freq_ford, positive_topics, negative_topics)
+
+# Example
+subcloud_overepresentation |> 
+  filter(freq_ford == "Biological sciences") |> 
+  pull(negative_topics) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Biological sciences") |> 
+  pull(positive_topics) |> 
+  pluck(1)
+subcloud_overepresentation$freq_ford
+map_int(subcloud_overepresentation$positive_topics, nrow)
+map_int(subcloud_overepresentation$negative_topics, nrow)
+
+```
+
+How spread are the disciplinary subclouds relative to the coordinates of the global space?
+
+```{r}
+disciplines_by_sdev <- sub_pca_enriched |> 
+  mutate(cum_sdev = map_dbl(local_sdev, sum)) |>
+  select(freq_ford, cum_sdev) |> 
+  arrange(desc(cum_sdev))
+```
+
+
+```{r}
+params <- list(
+  disciplines_by_sdev = disciplines_by_sdev
+)
+quarto::quarto_render(here::here("chapter.qmd"), 
+execute_params = params,
+output_format = "pdf")
 ```

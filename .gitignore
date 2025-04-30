@@ -59,6 +59,7 @@ abstract.pdf
 *.qs
 *.RDS
 *.png
+*.pdf
 *.feather
 *.arrow
 .vdoc*
