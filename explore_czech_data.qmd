@@ -85,6 +85,7 @@ people_portfolios_data <- list(
   source = "https://owncloud.cesnet.cz/index.php/s/Fz8ws7c9BtmuU0p/download",
   path = here::here("data", "people_portfolios.feather")
 )
+options(arrow.unsafe_metadata = TRUE)
 data_require(people_portfolios_data)
 people_portfolios <- arrow::read_feather(people_portfolios_data$path)
 ```
