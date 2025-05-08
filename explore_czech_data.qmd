@@ -63,8 +63,8 @@ Download document distributions.
 
 ```{r}
 docmodel_data <- list(
-  source = "https://owncloud.cesnet.cz/index.php/s/Fz8ws7c9BtmuU0p/download",
-  path = here::here("data", "people_portfolios.feather")
+  source = "https://osf.io/download/hvqs9/",
+  path = here::here("data", "topic_model_202207170249_documents_level_1.feather")
 )
 data_require(docmodel_data)
 ```
@@ -82,7 +82,7 @@ data_require(people_pubs_data)
 Download person-topic distributions.
 ```{r}
 people_portfolios_data <- list(
-  source = "https://osf.io/download/45f2b/",
+  source = "https://owncloud.cesnet.cz/index.php/s/Fz8ws7c9BtmuU0p/download",
   path = here::here("data", "people_portfolios.feather")
 )
 data_require(people_portfolios_data)
