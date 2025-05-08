@@ -80,19 +80,27 @@ data_require(people_pubs_data)
 ```
 
 ```{r}
-people_pubs_portfolios <-  arrow::read_feather(people_pubs_data$path) |>
-      select(vedidk, id_unique) |>
-      inner_join(
-        arrow::read_feather(docmodel_data$path) |> 
-          rename(id_unique = doc) |> 
-          mutate(id_unique = as.integer(id_unique)),
+people_pubs <- arrow::read_feather(people_pubs_data$path) |> 
+  tidytable::as_tidytable() |>
+  tidytable::select(vedidk, id_unique) 
+docmodel <- arrow::read_feather(docmodel_data$path) |> 
+  tidytable::as_tidytable() |> 
+  tidytable::rename(id_unique = doc) |> 
+  tidytable::mutate(id_unique = as.integer(id_unique))
+people_pubs_portfolios <- people_pubs |>
+      tidytable::inner_join(
+        docmodel,
           by = "id_unique"
-          ) |>  
-      tidytable::as_tidytable()
+          ) 
 people_portfolios <- people_pubs_portfolios |>
-  tidytable::summarise(tidytable::across(tidytable::starts_with("topic"), mean), .by = "vedidk") |> 
+  tidytable::summarise(
+    tidytable::across(tidytable::starts_with("topic"), mean), 
+  .by = "vedidk") |> 
   as_tibble()
 rm(people_pubs_portfolios)
+rm(people_pubs)
+rm(docmodel)
+gc()
 ```
 
 
