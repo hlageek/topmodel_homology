@@ -6,30 +6,41 @@ params:
     description: "Disciplines by sdev"
 ---
 
+## Abstract (old)
+
+Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications. Various implementations, including Bayesian inference, semantic networks and neural network-based embeddings have flourished in recent literature. As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a finite set of topics, or distributions over vocabulary, which are typically interpretable by domain experts. Sociological applications of topic modeling tend to adopt its operational definition from computer science and information retrieval and, therefore, predominantly revolve around interpreting or discovering particular topics in large corpora. There is consequently a notable scarcity of studies that would develop this method from a distinctively sociological standpoint. Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. By highlighting the often overlooked feature of topic models, namely the representation of documents as distribution over topics, we emphasize the intrinsically relational character of topic models. In doing so, we aim to demonstrate how topic models empower sociologists to study the creation of symbolic values and their structuration according to the specific logic of different linguistic markets. The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures. In this context, we propose to illustrate how the relationality of topic models renders them useful tools for examining homologies between discursive and social dimensions of fields, or between different discursive spaces, with empirical evidence from the scientific field.
+
 ## Introduction
 
-- why study homologies in position-takings
+-   why study homologies in position-takings
+
+This chapter aims to analyze homologies between disciplinary spaces of position-takings within the global framework of virtually all research funded in the Czech Republic over two decades. Our objectives are threefold: *first*, we show how topic modeling suits the homology framework by enabling comparisons of oppositional structures based on topic distributions, with reference to the global space of science as constructed by the donut. *Second*, we emphasize that topic models are of crucial interest when working on semantic structures, especially when combined with geometrical data analysis-in this case, principal component analysis (PCA). To this end, we propose a novel approach, derived from class-specific multiple correspondence analysis, to shed light on the specific distribution of topics-and hence the structure-of disciplinary spaces of position-takings, with reference to the cognitive structure of a global space of science. *Third*, our methodological and empirical work emphasizes the challenges of dealing with levels of abstraction. Methodologically, we contribute to the ongoing debate among researchers interested in geometrical data analysis about how to compare fields. Constructing disciplinary spaces of position-takings separately is informative about the internal cognitive structure of disciplines. However, comparing across separately constructed spaces inevitably raises the issue of comparing between different distance scales. Theoretically, we therefore use our empirical material to reflect on what level partial homologies would be found. We combine an informed analysis of the most structuring topics at the disciplinary level with a measure of degree of homology-the Yann score-of the disciplinary structure with the structure of the global space. Our methodology, which infers disciplinary structures from their distribution in a broader space, thus allows us to assess the extent to which each discipline is associated with-or is homologous to-the structure of science.
 
 ## The space of position-takings
 
-- definition
-- relation of spaces and fiels
-- 
-### Role of language / linguistic market
+-   definition
 
-- "linguistic market" – how different ways of speaking/writing hold different values within a field
-- symbolic capital - how linguistic choices reflect and shape an actor's position and authority within the field
-- the space of possible position-takings
+-   relation of spaces and fiels
+
+-   
+
+    ### Role of language / linguistic market
+
+-   "linguistic market" – how different ways of speaking/writing hold different values within a field
+
+-   symbolic capital - how linguistic choices reflect and shape an actor's position and authority within the field
+
+-   the space of possible position-takings
 
 ### Challenges for representing position-takings
 
-- large volumes of text 
-- complexity of capturing meanings in language
-- qualitative methods difficult to map onto quantitative models
-  
+-   large volumes of text
+-   complexity of capturing meanings in language
+-   qualitative methods difficult to map onto quantitative models
+
 ### Topic models as tools for position-taking analysis
 
-- probabilistic approach
+-   probabilistic approach
 
 #### Topic modeling method
 
@@ -37,7 +48,7 @@ params:
 
 ## Study of position-takings in the scientific field
 
-- which disciplines look the most like the global scientific field?
+-   which disciplines look the most like the global scientific field?
 
 ### Data an methods
 
@@ -48,7 +59,6 @@ params:
 #| results: asis
 knitr::kable(params$disciplines_by_sdev)
 ```
-
 
 ## Discussion
 
