@@ -4,9 +4,12 @@ title: "Exploration of Czech data"
 
 ## Setup
 
-This is intended as an exploration of the dataset published in Poetics. The dataset could be used for comparison of disciplines and the general scientific field. 
+This is intended as an exploration of the dataset published in Poetics. The dataset could be used for comparison of disciplines and the general scientific field.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 lapply(list.files(here::here("R"), full.names = T), source)
 lib_require("tidytable")
 lib_require("tidyverse")
@@ -14,12 +17,14 @@ lib_require("here")
 lib_require("arrow")
 ```
 
-
 ## Data
 
 For simplicity's sake, I am downloading an already calculated PCA projection of individuals (should be 42 PCs for 42 disciplinary categories).
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 pca_data <- list(
   source = "https://owncloud.cesnet.cz/index.php/s/JHZrStMPTtQcd8F/download",
   path = here::here("data", "pca_projection_full.RDS")
@@ -28,8 +33,12 @@ data_require(pca_data)
 pca_projection <- as_tibble(readRDS(pca_data$path))
 ```
 
-This is the original PC object with topics in rows and disciplines in columns 
+This is the original PC object with topics in rows and disciplines in columns
+
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 pca_src_data <- list(
   source = "https://owncloud.cesnet.cz/index.php/s/Bf3Qqn2S2GX1AEL/download",
   path = here::here("data", "pca_src.RDS")
@@ -41,6 +50,9 @@ pca_src <- readRDS(pca_src_data$path)
 Download topic distributions.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 topmodel_data <- list(
   source = "https://osf.io/download/45f2b/",
   path = here::here("data", "topic_model_202207170249_topics_level_1.feather")
@@ -52,16 +64,22 @@ topmodel <- arrow::read_feather(topmodel_data$path) |> select(-level)
 Reshaping the representation of topics for easier presentation and handling.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 topic_names <- name_topics(topmodel)
 max_terms <- 5
 topic_names_reduced <- topic_names |>
   mutate(topic_desc = map_chr(topic_desc, ~paste(na.omit(str_extract_all(.x, "\\b\\w+\\b")[[1]][1:max_terms]), collapse = " ")))
 rm(topmodel)
-``` 
+```
 
 Download document distributions.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 docmodel_data <- list(
   source = "https://osf.io/download/hvqs9/",
   path = here::here("data", "topic_model_202207170249_documents_level_1.feather")
@@ -72,6 +90,9 @@ data_require(docmodel_data)
 Download people-papers.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 people_pubs_data <- list(
   source = "https://osf.io/download/ynxsg/",
   path = here::here("data", "authors_by_pubs.arrow")
@@ -80,7 +101,11 @@ data_require(people_pubs_data)
 ```
 
 Download person-topic distributions.
+
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
 people_portfolios_data <- list(
   source = "https://owncloud.cesnet.cz/index.php/s/Fz8ws7c9BtmuU0p/download",
   path = here::here("data", "people_portfolios.feather")
@@ -90,11 +115,10 @@ data_require(people_portfolios_data)
 people_portfolios <- arrow::read_feather(people_portfolios_data$path)
 ```
 
-
 ## Subclouds PCA
 
-- the dataframe is nested by discipline (disciplinary subclouds)
-- a new PCA runs for each nested block (with original PCA coordinates as variables)
+-   the dataframe is nested by discipline (disciplinary subclouds)
+-   a new PCA runs for each nested block (with original PCA coordinates as variables)
 
 ```{r}
 sub_pca_df <- pca_projection |> 
@@ -112,10 +136,9 @@ mutate(
 select(-mat)
 ```
 
-- for each block, we extract some information from its specific PCA
+-   for each block, we extract some information from its specific PCA
 
 ```{r}
-
 sub_pca_enriched <- sub_pca_df |> 
   mutate(
     subcloud_center_coords = map(sub_pca_unscaled, ~ .x$center),
@@ -185,13 +208,9 @@ geom_point() +
         facet_wrap(~ freq_ford, scales = "free")
 ```
 
-This is a difficult section that runs for ages, so be patient.
-We needed to do to find
-1) topics overrepresented in a discipline 
-2) among those overrepresented in a discipline, topics, topics that are overrepresented at the extremes of the 1st PC of a disciplinary subcloud
+This is a difficult section that runs for ages, so be patient. We needed to do to find 1) topics overrepresented in a discipline 2) among those overrepresented in a discipline, topics, topics that are overrepresented at the extremes of the 1st PC of a disciplinary subcloud
 
 ```{r}
-
 subcloud_topics <- sub_pca_enriched |> 
   select(freq_ford, disc_people) |>
     mutate(
@@ -230,7 +249,6 @@ subcloud_topics <- sub_pca_enriched |>
   )
   )
 ```
-
 
 ```{r}
 subcloud_overepresentation <- subcloud_topics |> 
@@ -278,10 +296,333 @@ subcloud_overepresentation |>
   filter(freq_ford == "Biological sciences") |> 
   pull(positive_topics) |> 
   pluck(1)
+
 subcloud_overepresentation$freq_ford
 map_int(subcloud_overepresentation$positive_topics, nrow)
 map_int(subcloud_overepresentation$negative_topics, nrow)
 
+# Example
+subcloud_overepresentation |> 
+  filter(freq_ford == "Law") |> 
+  pull(negative_topics) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Law") |> 
+  pull(positive_topics) |> 
+  pluck(1)
+
+```
+
+Axis 1 and axis 2. This is the chunk that runs for ages x 2 (I guess)
+
+```{r}
+subcloud_topics <- sub_pca_enriched |> 
+  select(freq_ford, disc_people) |>
+  mutate(
+    disc_topics = map(disc_people, .f = \(x) {
+      numerator_vec <- people_portfolios |> 
+        filter(vedidk %in% rownames(x)) |>
+        summarise(across(starts_with("topic"), mean)) 
+      denominator_vec <- people_portfolios |> 
+        filter(!vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean)) |> 
+        bind_rows(numerator_vec) |>
+        colSums()
+      disc_scores <- ifelse(denominator_vec > 0,
+                            colSums(numerator_vec) / denominator_vec,
+                            0.5)
+      avg_disc_scores <- mean(disc_scores)
+      sd_disc_scores <- sd(disc_scores)
+      threshold <- avg_disc_scores + sd_disc_scores
+      disc_scores[disc_scores > threshold]
+    })) |> 
+  mutate(
+    # Separate people for PCA1 positive/negative poles
+    positive_people_pc1 = map(disc_people, process_subcloud_people, pc = 1, direction = "positive"),
+    negative_people_pc1 = map(disc_people, process_subcloud_people, pc = 1, direction = "negative"),
+    
+    # Separate people for PCA2 positive/negative poles
+    positive_people_pc2 = map(disc_people, process_subcloud_people, pc = 2, direction = "positive"),
+    negative_people_pc2 = map(disc_people, process_subcloud_people, pc = 2, direction = "negative")
+  ) |> 
+  mutate(
+    # Get average topic scores for the positive people in PCA1
+    topic_avg_positive_pc1 = map(positive_people_pc1, .f = \(x) {
+      people_portfolios |> 
+        filter(vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean))
+    }),
+    
+    # Get average topic scores for the negative people in PCA1
+    topic_avg_negative_pc1 = map(negative_people_pc1, .f = \(x) {
+      people_portfolios |> 
+        filter(vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean))
+    }),
+    
+    # Get average topic scores for the positive people in PCA2
+    topic_avg_positive_pc2 = map(positive_people_pc2, .f = \(x) {
+      people_portfolios |> 
+        filter(vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean))
+    }),
+    
+    # Get average topic scores for the negative people in PCA2
+    topic_avg_negative_pc2 = map(negative_people_pc2, .f = \(x) {
+      people_portfolios |> 
+        filter(vedidk %in% x) |>
+        summarise(across(starts_with("topic"), mean))
+    })
+  )
+```
+
+Do we get the contributing topics ?
+
+```{r}
+subcloud_overepresentation <- subcloud_topics |> 
+  select(freq_ford, disc_topics, topic_avg_positive_pc1, topic_avg_negative_pc1, topic_avg_positive_pc2, topic_avg_negative_pc2) |> 
+  mutate(
+    # Calculate topic scores for PCA1 and PCA2
+    topic_scores_pc1 = map2(topic_avg_positive_pc1, topic_avg_negative_pc1, \(x, y) {
+      numerator_vec <- colSums(x) 
+      denominator_vec <- colSums(x) + colSums(y)
+      ifelse(denominator_vec > 0, numerator_vec / denominator_vec, 0.5)
+    }),
+    topic_scores_pc2 = map2(topic_avg_positive_pc2, topic_avg_negative_pc2, \(x, y) {
+      numerator_vec <- colSums(x) 
+      denominator_vec <- colSums(x) + colSums(y)
+      ifelse(denominator_vec > 0, numerator_vec / denominator_vec, 0.5)
+    })
+  ) |> 
+  mutate(
+    # Filter only disciplinary relevant topics
+    topic_scores_pc1_filtered = map2(disc_topics, topic_scores_pc1, \(disc_topics, topic_scores) {
+      topic_scores <- topic_scores[names(disc_topics)]
+      topic_scores <- topic_scores[topic_scores > 0 & topic_scores < 0.5 | topic_scores > 0.5 & topic_scores < 1]
+    }),
+    topic_scores_pc2_filtered = map2(disc_topics, topic_scores_pc2, \(disc_topics, topic_scores) {
+      topic_scores <- topic_scores[names(disc_topics)]
+      topic_scores <- topic_scores[topic_scores > 0 & topic_scores < 0.5 | topic_scores > 0.5 & topic_scores < 1]
+    })
+  ) |> 
+  select(freq_ford, topic_scores_pc1_filtered, topic_scores_pc2_filtered) |> 
+  mutate(
+    # Extract positive and negative topics for PCA1
+    positive_topics_pc1 = map(topic_scores_pc1_filtered, \(x) {
+      unlist(x) |> 
+        enframe("topic", "score") |> 
+        filter(score > 0.5) |>
+        arrange(desc(score)) |> 
+        left_join(topic_names_reduced, by = "topic") 
+    }),
+    negative_topics_pc1 = map(topic_scores_pc1_filtered, \(x) {
+      unlist(x) |> 
+        enframe("topic", "score") |> 
+        filter(score < 0.5) |>
+        arrange(score) |> 
+        left_join(topic_names_reduced, by = "topic") 
+    }),
+    # Extract positive and negative topics for PCA2
+    positive_topics_pc2 = map(topic_scores_pc2_filtered, \(x) {
+      unlist(x) |> 
+        enframe("topic", "score") |> 
+        filter(score > 0.5) |>
+        arrange(desc(score)) |> 
+        left_join(topic_names_reduced, by = "topic") 
+    }),
+    negative_topics_pc2 = map(topic_scores_pc2_filtered, \(x) {
+      unlist(x) |> 
+        enframe("topic", "score") |> 
+        filter(score < 0.5) |>
+        arrange(score) |> 
+        left_join(topic_names_reduced, by = "topic") 
+    })
+  ) |> 
+  select(freq_ford, positive_topics_pc1, negative_topics_pc1, positive_topics_pc2, negative_topics_pc2)
+
+# Biology
+subcloud_overepresentation |> 
+  filter(freq_ford == "Biological sciences") |> 
+  pull(negative_topics_pc1) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Biological sciences") |> 
+  pull(positive_topics_pc1) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Biological sciences") |> 
+  pull(negative_topics_pc2) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Biological sciences") |> 
+  pull(positive_topics_pc2) |> 
+  pluck(1)
+```
+
+Try to render a tibble
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(tibble)
+library(knitr)
+
+# Extract the row for 'Biological sciences'
+bio_row <- subcloud_overepresentation %>%
+  filter(freq_ford == "Biological sciences")
+
+# Function to extract the first 10 topic descriptions from a given list-column
+extract_topic_desc <- function(topic_list, column_name) {
+  topic_list[[1]] %>%
+    select(topic) %>%
+    left_join(topic_names_reduced, by = "topic") %>%
+    select(topic_desc) %>%
+    slice_head(n = 10) %>%
+    rename(!!column_name := topic_desc)
+}
+
+# Extract and process each topic list
+negative_pc1 <- extract_topic_desc(bio_row$negative_topics_pc1, "negative_pc1")
+positive_pc1 <- extract_topic_desc(bio_row$positive_topics_pc1, "positive_pc1")
+negative_pc2 <- extract_topic_desc(bio_row$negative_topics_pc2, "negative_pc2")
+positive_pc2 <- extract_topic_desc(bio_row$positive_topics_pc2, "positive_pc2")
+
+# Determine the maximum number of rows among the extracted lists
+max_length <- max(
+  nrow(negative_pc1),
+  nrow(positive_pc1),
+  nrow(negative_pc2),
+  nrow(positive_pc2)
+)
+
+# Function to pad shorter data frames with NA to match the maximum length
+pad_df <- function(df, col_name, max_length) {
+  current_length <- nrow(df)
+  if (current_length < max_length) {
+    df <- bind_rows(df, tibble(!!col_name := rep(NA, max_length - current_length)))
+  }
+  return(df)
+}
+
+# Pad each data frame
+negative_pc1 <- pad_df(negative_pc1, "negative_pc1", max_length)
+positive_pc1 <- pad_df(positive_pc1, "positive_pc1", max_length)
+negative_pc2 <- pad_df(negative_pc2, "negative_pc2", max_length)
+positive_pc2 <- pad_df(positive_pc2, "positive_pc2", max_length)
+
+# Combine all into a single tibble
+bio_topics <- bind_cols(negative_pc1, positive_pc1, negative_pc2, positive_pc2)
+
+# Display the table
+kable(bio_topics, caption = "Top 10 Positive and Negative Topic Descriptions for Biological Sciences Across PC1 and PC2")
+```
+
+Law
+
+```{r}
+# Law's working well
+subcloud_overepresentation |> 
+  filter(freq_ford == "Law") |> 
+  pull(negative_topics_pc1) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Law") |> 
+  pull(positive_topics_pc1) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Law") |> 
+  pull(negative_topics_pc2) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Law") |> 
+  pull(positive_topics_pc2) |> 
+  pluck(1)
+
+
+# Extract the row for 'Biological sciences'
+bio_row <- subcloud_overepresentation %>%
+  filter(freq_ford == "Law")
+
+# Function to extract the first 10 topic descriptions from a given list-column
+extract_topic_desc <- function(topic_list, column_name) {
+  topic_list[[1]] %>%
+    select(topic) %>%
+    left_join(topic_names_reduced, by = "topic") %>%
+    select(topic_desc) %>%
+    slice_head(n = 10) %>%
+    rename(!!column_name := topic_desc)
+}
+
+# Extract and process each topic list
+negative_pc1 <- extract_topic_desc(bio_row$negative_topics_pc1, "negative_pc1")
+positive_pc1 <- extract_topic_desc(bio_row$positive_topics_pc1, "positive_pc1")
+negative_pc2 <- extract_topic_desc(bio_row$negative_topics_pc2, "negative_pc2")
+positive_pc2 <- extract_topic_desc(bio_row$positive_topics_pc2, "positive_pc2")
+
+# Determine the maximum number of rows among the extracted lists
+max_length <- max(
+  nrow(negative_pc1),
+  nrow(positive_pc1),
+  nrow(negative_pc2),
+  nrow(positive_pc2)
+)
+
+# Function to pad shorter data frames with NA to match the maximum length
+pad_df <- function(df, col_name, max_length) {
+  current_length <- nrow(df)
+  if (current_length < max_length) {
+    df <- bind_rows(df, tibble(!!col_name := rep(NA, max_length - current_length)))
+  }
+  return(df)
+}
+
+# Pad each data frame
+negative_pc1 <- pad_df(negative_pc1, "negative_pc1", max_length)
+positive_pc1 <- pad_df(positive_pc1, "positive_pc1", max_length)
+negative_pc2 <- pad_df(negative_pc2, "negative_pc2", max_length)
+positive_pc2 <- pad_df(positive_pc2, "positive_pc2", max_length)
+
+# Combine all into a single tibble
+bio_topics <- bind_cols(negative_pc1, positive_pc1, negative_pc2, positive_pc2)
+
+# Display the table
+kable(bio_topics, caption = "Top 10 Positive and Negative Topic Descriptions for Biological Sciences Across PC1 and PC2")
+```
+
+Sociology
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# Sociology seems working well too
+subcloud_overepresentation |> 
+  filter(freq_ford == "Sociology") |> 
+  pull(negative_topics_pc1) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Sociology") |> 
+  pull(positive_topics_pc1) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Sociology") |> 
+  pull(negative_topics_pc2) |> 
+  pluck(1)
+
+subcloud_overepresentation |> 
+  filter(freq_ford == "Sociology") |> 
+  pull(positive_topics_pc2) |> 
+  pluck(1)
 ```
 
 How spread are the disciplinary subclouds relative to the coordinates of the global space?
@@ -293,6 +634,42 @@ disciplines_by_sdev <- sub_pca_enriched |>
   arrange(desc(cum_sdev))
 ```
 
+Tentative vizualization
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| echo: false
+#| warning: false
+#| message: false
+library(wesanderson)
+
+# groups are based on standard deviation
+mean_sdev <- mean(disciplines_by_sdev$cum_sdev)
+sd_sdev <- sd(disciplines_by_sdev$cum_sdev)
+
+disciplines_by_sdev <- disciplines_by_sdev |>
+  mutate(group = case_when(
+    cum_sdev >= mean_sdev + sd_sdev ~ "high level of homology",
+    cum_sdev <= mean_sdev - sd_sdev ~ "low level of homology",
+    TRUE ~ "middleish level of homology"
+  ))
+
+wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
+group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+
+ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, fill = group)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = group_colors) +
+  labs(
+    title = "Cumulative explained variance",
+    x = "",
+    y = "Cumulative standard deviation",
+    fill = "Yann's score"
+  ) +
+  theme_minimal(base_size = 10)
+```
 
 ```{r}
 params <- list(

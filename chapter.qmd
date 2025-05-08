@@ -6,25 +6,32 @@ params:
     description: "Disciplines by sdev"
 ---
 
-## Abstract (old)
+## Abstract
 
-Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications. Various implementations, including Bayesian inference, semantic networks and neural network-based embeddings have flourished in recent literature. As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a finite set of topics, or distributions over vocabulary, which are typically interpretable by domain experts. Sociological applications of topic modeling tend to adopt its operational definition from computer science and information retrieval and, therefore, predominantly revolve around interpreting or discovering particular topics in large corpora. There is consequently a notable scarcity of studies that would develop this method from a distinctively sociological standpoint. Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. By highlighting the often overlooked feature of topic models, namely the representation of documents as distribution over topics, we emphasize the intrinsically relational character of topic models. In doing so, we aim to demonstrate how topic models empower sociologists to study the creation of symbolic values and their structuration according to the specific logic of different linguistic markets. The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures. In this context, we propose to illustrate how the relationality of topic models renders them useful tools for examining homologies between discursive and social dimensions of fields, or between different discursive spaces, with empirical evidence from the scientific field.
+Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications. Various implementations, including Bayesian inference, semantic networks and neural network-based embeddings have flourished in recent literature. As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a finite set of topics, or distributions over vocabulary, which are typically interpretable by domain experts. Sociological applications of topic modeling tend to adopt its operational definition from computer science and information retrieval and, therefore, predominantly revolve around interpreting or discovering particular topics in large corpora. There is consequently a notable scarcity of studies that would develop this method from a distinctively sociological standpoint. Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. By highlighting the often overlooked feature of topic models, namely the representation of documents as distribution over topics, we emphasize the intrinsically relational character of topic models. In doing so, we aim to demonstrate how topic models empower sociologists to study the creation of symbolic values and their structuration according to the specific logic of different linguistic markets. The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures. In this context, we propose to illustrate how the relationality of topic models renders them useful tools for examining homologies between discursive spaces, with empirical evidence from the scientific field.
 
-## Introduction
+## 1. Introduction
 
 -   why study homologies in position-takings
 
 This chapter aims to analyze homologies between disciplinary spaces of position-takings within the global framework of virtually all research funded in the Czech Republic over two decades. Our objectives are threefold: *first*, we show how topic modeling suits the homology framework by enabling comparisons of oppositional structures based on topic distributions, with reference to the global space of science as constructed by the donut. *Second*, we emphasize that topic models are of crucial interest when working on semantic structures, especially when combined with geometrical data analysis-in this case, principal component analysis (PCA). To this end, we propose a novel approach, derived from class-specific multiple correspondence analysis, to shed light on the specific distribution of topics-and hence the structure-of disciplinary spaces of position-takings, with reference to the cognitive structure of a global space of science. *Third*, our methodological and empirical work emphasizes the challenges of dealing with levels of abstraction. Methodologically, we contribute to the ongoing debate among researchers interested in geometrical data analysis about how to compare fields. Constructing disciplinary spaces of position-takings separately is informative about the internal cognitive structure of disciplines. However, comparing across separately constructed spaces inevitably raises the issue of comparing between different distance scales. Theoretically, we therefore use our empirical material to reflect on what level partial homologies would be found. We combine an informed analysis of the most structuring topics at the disciplinary level with a measure of degree of homology-the Yann score-of the disciplinary structure with the structure of the global space. Our methodology, which infers disciplinary structures from their distribution in a broader space, thus allows us to assess the extent to which each discipline is associated with-or is homologous to-the structure of science.
 
-## The space of position-takings
+## 2. Homologies in spaces of position-takings: evidence from the scientific field
 
--   definition
+-   definition:
+
+    1\) quick definition of homology as general principles of vision and division, say that scholars mostly focus on homology between positions and position-takings (habitus), but we focus on semantic/cognitive spaces. Which are, of course, totally grounded in a space of positions...
+
+    Also emphasize on the issue of homology / relative autonomy. Are less homologeous disciplines the more autonomous ones ? There is something here. The editors' approach focusing on homology is cool, but we need to stay a bit sociologists of science and mobilize these important concepts.
 
 -   relation of spaces and fiels
 
--   
+    \[do we need that ?\]
 
-    ### Role of language / linguistic market
+-   What is specitic to the scientific field (as a field of cultural production). Here we may refer to Homo Academicus (as they do in the introduction, even if I do not completely agree with their lecture)\
+    The editors' approach focusing on homology is cool, but we need to stay a bit sociologists of science and mobilize these important concepts.
+
+    ### Role of language / linguistic market \[this is for Radim or Yann\]
 
 -   "linguistic market" – how different ways of speaking/writing hold different values within a field
 
@@ -32,7 +39,11 @@ This chapter aims to analyze homologies between disciplinary spaces of position-
 
 -   the space of possible position-takings
 
-### Challenges for representing position-takings
+## 3. Methods and Data
+
+### Challenges for representing position-takings 
+
+\[this may come before. Anyway, I think it is only a few sentences, like transition sentences\]
 
 -   large volumes of text
 -   complexity of capturing meanings in language
@@ -40,28 +51,194 @@ This chapter aims to analyze homologies between disciplinary spaces of position-
 
 ### Topic models as tools for position-taking analysis
 
+-   embedding approach
 -   probabilistic approach
+-   our approach
 
-#### Topic modeling method
+#### Sociological relevance of topic modeling 
 
-#### Sociological relevance of topic modeling
+\[this is embedded in the previous point. And also comes at the end as a discussion/conclusion\]
 
-## Study of position-takings in the scientific field
+## Results: study of position-takings in the scientific field
 
--   which disciplines look the most like the global scientific field?
+This result section is divided into three parts. *First*, we present the structure of the general topic space, i.e. the donut. *Second*, we show to what degree discipline align with the main principles of opposition-vision and division-of the global space, i.e. the Yann score. *Third*, to illustrate our findings, we focus on two disciplines that exemplify contrasting degrees of homology to the global space: the biological sciences, characterized by high homology, and law, which exhibits low degree of homology.
 
-### Data an methods
+describe our methodological lens
 
 ### Results
 
 ```{r}
-#| echo: false # Optional: Hides the R code in the output
+#| echo: false 
 #| results: asis
 knitr::kable(params$disciplines_by_sdev)
+```
+
+Fig1. The donut
+
+![](output/figures/fig2_disciplines.png)
+
+Fig2. The disciplines
+
+\[text\]
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+#| fig.cap: "Yann score."
+
+load("data/for_chapter.Rda")
+
+library(tidyverse)
+
+disciplines_by_sdev <- sub_pca_enriched |> 
+  mutate(cum_sdev = map_dbl(local_sdev, sum)) |>
+  select(freq_ford, cum_sdev) |> 
+  arrange(desc(cum_sdev))
+library(wesanderson)
+
+mean_sdev <- mean(disciplines_by_sdev$cum_sdev)
+sd_sdev <- sd(disciplines_by_sdev$cum_sdev)
+
+disciplines_by_sdev <- disciplines_by_sdev |>
+  mutate(group = case_when(
+    cum_sdev >= mean_sdev + sd_sdev ~ "high level of homology",
+    cum_sdev <= mean_sdev - sd_sdev ~ "low level of homology",
+    TRUE ~ "middleish level of homology"
+  ))
+
+wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
+group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+
+ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, fill = group)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = group_colors) +
+  labs(
+    title = "Cumulative explained variance",
+    x = "",
+    y = "Cumulative standard deviation",
+    fill = "Yann's score"
+  ) +
+  theme_minimal(base_size = 10)
+```
+
+\[text\]
+
+\[text\]
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(tibble)
+library(knitr)
+
+bio_row <- subcloud_overepresentation %>%
+  filter(freq_ford == "Biological sciences")
+
+extract_topic_desc <- function(topic_list, column_name) {
+  topic_list[[1]] %>%
+    select(topic) %>%
+    left_join(topic_names_reduced, by = "topic") %>%
+    select(topic_desc) %>%
+    slice_head(n = 10) %>%
+    rename(!!column_name := topic_desc)
+}
+
+negative_pc1 <- extract_topic_desc(bio_row$negative_topics_pc1, "negative_pc1")
+positive_pc1 <- extract_topic_desc(bio_row$positive_topics_pc1, "positive_pc1")
+negative_pc2 <- extract_topic_desc(bio_row$negative_topics_pc2, "negative_pc2")
+positive_pc2 <- extract_topic_desc(bio_row$positive_topics_pc2, "positive_pc2")
+
+max_length <- max(
+  nrow(negative_pc1),
+  nrow(positive_pc1),
+  nrow(negative_pc2),
+  nrow(positive_pc2)
+)
+
+pad_df <- function(df, col_name, max_length) {
+  current_length <- nrow(df)
+  if (current_length < max_length) {
+    df <- bind_rows(df, tibble(!!col_name := rep(NA, max_length - current_length)))
+  }
+  return(df)
+}
+
+negative_pc1 <- pad_df(negative_pc1, "negative_pc1", max_length)
+positive_pc1 <- pad_df(positive_pc1, "positive_pc1", max_length)
+negative_pc2 <- pad_df(negative_pc2, "negative_pc2", max_length)
+positive_pc2 <- pad_df(positive_pc2, "positive_pc2", max_length)
+
+bio_topics <- bind_cols(negative_pc1, positive_pc1, negative_pc2, positive_pc2)
+
+kable(bio_topics, caption = "Table 1. Top 10 most contributive topics to PCA 1 and 2: Law")
+```
+
+\[text\[
+
+```{r}
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(tibble)
+library(knitr)
+
+bio_row <- subcloud_overepresentation %>%
+  filter(freq_ford == "Law")
+
+extract_topic_desc <- function(topic_list, column_name) {
+  topic_list[[1]] %>%
+    select(topic) %>%
+    left_join(topic_names_reduced, by = "topic") %>%
+    select(topic_desc) %>%
+    slice_head(n = 10) %>%
+    rename(!!column_name := topic_desc)
+}
+
+negative_pc1 <- extract_topic_desc(bio_row$negative_topics_pc1, "negative_pc1")
+positive_pc1 <- extract_topic_desc(bio_row$positive_topics_pc1, "positive_pc1")
+negative_pc2 <- extract_topic_desc(bio_row$negative_topics_pc2, "negative_pc2")
+positive_pc2 <- extract_topic_desc(bio_row$positive_topics_pc2, "positive_pc2")
+
+max_length <- max(
+  nrow(negative_pc1),
+  nrow(positive_pc1),
+  nrow(negative_pc2),
+  nrow(positive_pc2)
+)
+
+pad_df <- function(df, col_name, max_length) {
+  current_length <- nrow(df)
+  if (current_length < max_length) {
+    df <- bind_rows(df, tibble(!!col_name := rep(NA, max_length - current_length)))
+  }
+  return(df)
+}
+
+negative_pc1 <- pad_df(negative_pc1, "negative_pc1", max_length)
+positive_pc1 <- pad_df(positive_pc1, "positive_pc1", max_length)
+negative_pc2 <- pad_df(negative_pc2, "negative_pc2", max_length)
+positive_pc2 <- pad_df(positive_pc2, "positive_pc2", max_length)
+
+bio_topics <- bind_cols(negative_pc1, positive_pc1, negative_pc2, positive_pc2)
+
+kable(bio_topics, caption = "Table 2. Top 10 most contributive topics to PCA 1 and 2: Law")
 ```
 
 ## Discussion
 
 ### Homologies in position-takings
+
+## Conclusion
 
 ### Sociological appropriation of topic models
