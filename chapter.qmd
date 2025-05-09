@@ -12,33 +12,23 @@ This chapter aims to analyze homologies between disciplinary spaces of position-
 
 ## 1. Introduction
 
-\[I do not know yet where to put this. I like this intro about topic models\]
+\[why study homologies in position-takings - in scientific fields - general framework of theoretical concern + methodological concern\].
 
 Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications. Various implementations, including Bayesian inference, semantic networks and neural network-based embeddings have flourished in recent literature. As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a finite set of topics, or distributions over vocabulary, which are typically interpretable by domain experts. Sociological applications of topic modeling tend to adopt its operational definition from computer science and information retrieval and, therefore, predominantly revolve around interpreting or discovering particular topics in large corpora. There is consequently a notable scarcity of studies that would develop this method from a distinctively sociological standpoint. Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. By highlighting the often overlooked feature of topic models, namely the representation of documents as distribution over topics, we emphasize the intrinsically relational character of topic models. In doing so, we aim to demonstrate how topic models empower sociologists to study the creation of symbolic values and their structuration according to the specific logic of different linguistic markets. The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures. In this context, we propose to illustrate how the relationality of topic models renders them useful tools for examining homologies between discursive spaces, with empirical evidence from the scientific field.
 
--   why study homologies in position-takings - in scientific fields
+The tentative structure of the proposed chapter is as follows. In a first *theoreticaly* section, we engage with homology in scientific fields and build our argument for considering topic spaces as spaces of position-takings. In a second *methodological* section, we develop pour research strategy and present our data and method. In a third *empirical* section, we present our results in three steps: (a) the space of topics and its main dimension of opposition, (b) the subcoulds of disciplines and their distribution within the global space, (c) exemplify extreme cases of strong (biological sciences) and weak (law) homology to the global space of topics. In a fourth *discussion* section, we address challenges of identifying and interpretating homologies in spaces of scientific position-takings, emphasizing the crucial issues of *partiality* and dealing with *levels of abstraction*.
 
 ## 2. Homologies in spaces of position-takings: evidence from the scientific field
 
--   definition
+With reference to Bourdieu, the concept of homology primarily refers to the relationship between positions within a field and the practices (or position-takings) that emerge from those positions (Bourdieu, 1979). This relationship is underpinned by the concept of *habitus*, where personal dispositions associated with agents position, function as structuring principles of action. While much of the sociological literature focuses on homology between positions and position-takings, our focus shifts to *semantic/cognitive spaces*-which, of course, are ultimately grounded in the positions of agents within the scientific field (Wacquant, 1989). These spaces of position-takings reflect the cognitive and epistemological structures that shape how knowledge is produced and legitimized within disciplines.
 
-    With reference to Bourdieu, the concept of homology primarily refers to the relationship between positions within a field and the practices (or position-takings) that emerge from those positions (Bourdieu, 1979). This relationship is underpinned by the concept of *habitus*, where personal dispositions associated with agents position, function as structuring principles of action. While much of the sociological literature focuses on homology between positions and position-takings, our focus shifts to *semantic/cognitive spaces*-which, of course, are ultimately grounded in the positions of agents within the scientific field (Wacquant, 1989). These spaces of position-takings reflect the cognitive and epistemological structures that shape how knowledge is produced and legitimized within disciplines.
+In Bourdieu's theory, the scientific field is a subspecies of the larger cultural production field, itself embedded within the broader social space (Bourdieu, 2015). Homology between these spaces implies that the principles of vision and division that govern the field of science are not isolated but related to the larger social structures (Bourdieu, 1996). However, there is also the issue of *relative autonomy*-scientific fields, while influenced by broader social structures, maintain a degree of independence (Bourdieu, 1984). This raises a crucial question: *Are less homologous disciplines necessarily more autonomous?* There is something to explore here. The less homogenous a discipline's principles of vision and division, the more likely it may be to retain its autonomy, carving out its own distinct epistemological and cultural space, jurisdiction, or settlement (Abbott, 2001). This relationship between homology and autonomy invites further inquiry, especially in the context of how different disciplines navigate the complex interaction between their own internal logics and the broader societal structures. The editors' focus on homology provides valuable insights, but as sociologists of science, we need to extend this discussion by engaging more critically with the concept of *relative autonomy* and how it shapes the practices and power dynamics within scientific fields. Focusing solely on homology may obscure the dynamics of how disciplines are structured and evolve in relation to the larger social space.
 
--   relation of spaces and fields
+The scientific field is highly specific in that it is one of the most autonomous subfields within cultural production, characterized by distinct barriers to entry and a specific set of rules for recognition (Bourdieu, 2001). As a field of action, it is defined by the power of agents to determine the boundaries of what is considered scientific knowledge and valid practices. According to Bourdieu's *Homo Academicus* (1984a), the scientific field operates as a field of symbolic power, where the production and validation of knowledge is a collective activity regulated by the internal logic of the field. Scientific fields have often been conceptualized as relatively stable structures serving as fundamental organizational units that structure the production of scientific knowledge. They provide specific schemes of organization, perception and action, ensuring their continuity over time (Whitley, 1984; Lenoir, 1997; Bourdieu, 1997), while also shaping research agendas, establishing standards of evaluation, and governing scientific careers (Heilbron, 2004; Gingras, 2012). These entities are seminally analyzed through their process of autonomization, i.e., the progressive implementation of several institutional markers, such as dedicated journals, scientific societies and events, or academic units. However, this approach alone is likely to fail at identifying the social and cognitive configurations as resulting from agent's values and action. Indeed, the classical conceptualization of scientific fields as primarily depending of the distribution of agent's resources inevitably lead to consider disciplinary specialties, research topics and scientific practices as supplementary variables. Such a focus on science through the lens of institutions and their relative autonomy in relation to competing fields has accounted for the lion's share of sociological research on science (Bourdieu, 2001; Elias, 2017). This dominant approach is typically adopting a retrospective, front-to-back perspective, hence reconstructing our understanding of scientific fields from the established forms of scientific entities, where change may only occur at the borderland of disciplines.
 
-    In Bourdieu's theory, the scientific field is a subspecies of the larger cultural production field, itself embedded within the broader social space (Bourdieu, 2015). Homology between these spaces implies that the principles of vision and division that govern the field of science are not isolated but related to the larger social structures (Bourdieu, 1996). However, there is also the issue of *relative autonomy*-scientific fields, while influenced by broader social structures, maintain a degree of independence (Bourdieu, 1984). This raises a crucial question: *Are less homologous disciplines necessarily more autonomous?* There is something to explore here. The less homogenous a discipline's principles of vision and division, the more likely it may be to retain its autonomy, carving out its own distinct epistemological and cultural space, jurisdiction, or settlement (Abbott, 2011).
+In this chapter, we propose to focus on research topics as a central mechanism of distinction within the scientific field. Instead of presupposing that research topics are distributed according to the structure of the space of relation of agents' objective positions, we operationalize a space of position-takings, where distances are measured by the semantic similarity between topics. In other term, we focus on the distribution of position-takings, rather than the distribution of positions. Exactly like the seminal use of geometrical data analysis in fields' approach, we draw on principal component analysis to identify the principal dimensions of oppositions in topic spaces. As Abbott (1995) puts it when analyzing how scientific fields emerge, merge, endure, or dissolve over time, one must analyze to what extent initial sites of difference crystallize into durable scientific structures, as the introduction of a new boundary often delegitimizes old distinctions or emphasizes new ones-either yoking entities together or dividing them-ultimately amounting to "a projection from a social space of higher dimensionality to one of lower dimensionality" (p. 871).
 
-    This relationship between homology and autonomy invites further inquiry, especially in the context of how different disciplines navigate the complex interaction between their own internal logics and the broader societal structures. The editors' focus on homology provides valuable insights, but as sociologists of science, we need to extend this discussion by engaging more critically with the concept of *relative autonomy* and how it shapes the practices and power dynamics within scientific fields. Focusing solely on homology may obscure the dynamics of how disciplines are structured and evolve in relation to the larger social space.
-
--   The scientific field is highly specific in that it is one of the most autonomous subfields within cultural production, characterized by distinct barriers to entry and a specific set of rules for recognition (Bourdieu, 2001). As a field of action, it is defined by the power of agents to determine the boundaries of what is considered scientific knowledge and valid practices. According to Bourdieu's *Homo Academicus* (1984a), the scientific field operates as a field of symbolic power, where the production and validation of knowledge is a collective activity regulated by the internal logic of the field. While Bourdieu's analysis in *Homo Academicus* is insightful, we should also be cautious of a one-sided interpretation of the field's autonomy. The scientific field, though relatively autonomous, does not operate in a vacuum-its practices and distinctions are shaped by broader social forces, as Wacquant (1989) and Wang (2016) point out.
-
-    \[keep notes - Abbott and topic modeling\]
-
-    Accordingly, scientific fields have often been conceptualized as relatively stable structures serving as fundamental organizational units that structure the production of scientific knowledge. They provide specific schemes of organization, perception and action, ensuring their continuity over time (Whitley, 1984; Lenoir, 1997; Bourdieu, 1997), while also shaping research agendas, establishing standards of evaluation, and governing scientific careers (Heilbron, 2004; Gingras, 2012). These entities are seminally analyzed through their process of autonomization, i.e., the progressive implementation of several institutional markers, such as dedicated journals, scientific societies and events, or academic units. However, this approach alone is likely to fail at identifying the social and cognitive configurations *before* or *after* the integration of disciplinary entities, hence failing to account for the emergence and dissolution of research fields as a processual dynamic. Such a focus on scientific institutions and their relative autonomy vis-à-vis competing fields has accounted for the lion's share of sociological research on science (Bourdieu, 2001; Elias, 2017; Benz et al., 2024). This dominant approach is typically adopting a retrospective, front-to-back perspective, hence reconstructing historical narratives from the established forms of scientific entities, where change may only take place at the borderland of disciplines.
-
-    To overcome these limitations, we propose to switch for a back-to-front perspective, hence starting from the dynamics of boundary formation rather than assuming fixed entities. "**Boundaries come first, then entities**" (Abbott, 1995: 860). In other terms, we examine how micro-level changes, such as shifts in membership and research focus, aggregate into macro-level transformations that shape the trajectory of a field. To examine how scientific fields emerge, merge, endure, or dissolve over time, one must analyze to what extent such initial sites of difference crystallize into durable scientific structures. The introduction of a new boundary has the typical effect of destroying a previous dimension of difference. This means to delegitimize old differences or the emphasis on new ones. The former yokes entities together, the latter divides them. In formal terms, a yoking is defined as "**a projection from a social space of higher dimensionality to one of lower dimensionality**" (Abbott, 1995: 871).
-
-    Hence, instead of starting from assuming the existence of scientific fields as integrated entities, we consider analyzing how bundles of ties between various areas of work and various bodies of workers constitute scientific structures at any given time (Abbott, 1995), and how they relate to institutional markers.
+-   
 
     ### Role of language / linguistic market \[this is for Radim or Yann\]
 
@@ -47,6 +37,8 @@ Topic modeling is a suite of information retrieval algorithms that has grown pop
 -   symbolic capital - how linguistic choices reflect and shape an actor's position and authority within the field
 
 -   the space of possible position-takings
+
+## 3. Research strategy, method and data
 
 ### Challenges for representing position-takings
 
@@ -58,13 +50,14 @@ Topic modeling is a suite of information retrieval algorithms that has grown pop
 
 -   embedding approach
 -   probabilistic approach
--   our approach
+-   from corpuses to spaces
+-   our approach: TopSBM and compositional data analysis
 
 #### Sociological relevance of topic modeling
 
 \[this is embedded in the previous point, but must be a transition to the results. And also comes again at the end as a discussion/conclusion\]
 
-## Results: study of position-takings in the scientific field
+## 4. Results: study of position-takings in the scientific field
 
 This result section is divided into three parts. *First*, we present the structure of the general topic space, i.e. the donut. *Second*, we show to what degree discipline align with the main principles of opposition-vision and division-of the global space, i.e. the Yann score. *Third*, to illustrate our findings, we focus on two disciplines that exemplify contrasting degrees of homology to the global space: the biological sciences, characterized by high homology, and law, which exhibits low degree of homology.
 
@@ -77,6 +70,8 @@ describe our methodological lens
 #| results: asis
 knitr::kable(params$disciplines_by_sdev)
 ```
+
+\[figure of the donut\]
 
 Fig1. The donut
 
@@ -186,7 +181,20 @@ bio_topics <- bind_cols(negative_pc1, positive_pc1, negative_pc2, positive_pc2)
 kable(bio_topics, caption = "Table 1. Top 10 most contributive topics to PCA 1 and 2: Law")
 ```
 
-\[text\[
+\[crazy GPT interpretation\]
+
+| PCA Axis | Negative Pole | Positive Pole | Conceptual Distinction |
+|----------|---------------|---------------|------------------------|
+
+|         |                                              |                                                   |                        |
+|---------|----------------------------------------------|---------------------------------------------------|------------------------|
+| **PC1** | Biomedicine, Molecular, Laboratory (Culture) | Faunistics, Ecology, Natural Description (Nature) | **Nature vs. Culture** |
+
+|         |                                                    |                                                   |                       |
+|---------|----------------------------------------------------|---------------------------------------------------|-----------------------|
+| **PC2** | Zoology, Parasitology, Reproductive Biology (Life) | Bioenergy, Photosynthesis, Reclamation (Non-Life) | **Life vs. Non-Life** |
+
+\[not so bad actually\]
 
 ```{r}
 #| echo: FALSE
@@ -239,6 +247,21 @@ bio_topics <- bind_cols(negative_pc1, positive_pc1, negative_pc2, positive_pc2)
 
 kable(bio_topics, caption = "Table 2. Top 10 most contributive topics to PCA 1 and 2: Law")
 ```
+
+\[another crazy interpretation from GPT\]
+
+| PCA Axis | Negative Pole | Positive Pole | Conceptual Distinction |
+|----------|---------------|---------------|------------------------|
+
+|         |                                                   |                                              |                                       |
+|---------|---------------------------------------------------|----------------------------------------------|---------------------------------------|
+| **PC1** | Sociocultural, Human Identity, Politics, Religion | Applied Technology, Infrastructure, Business | **Socio-political vs. Technological** |
+
+|         |                                             |                                                 |                                               |
+|---------|---------------------------------------------|-------------------------------------------------|-----------------------------------------------|
+| **PC2** | Human-centered Life, Social Issues, Biology | Systemic/Structural Forces, Economy, Technology | **Life-centered vs. Systemic/Organizational** |
+
+\[we must ensure our interpretation, that Law does not properly reflection conceptual distinctions of the global PCA\]
 
 ## Discussion
 
