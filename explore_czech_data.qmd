@@ -341,34 +341,28 @@ subcloud_topics <- sub_pca_enriched |>
     # Separate people for PCA1 positive/negative poles
     positive_people_pc1 = map(disc_people, process_subcloud_people, pc = 1, direction = "positive"),
     negative_people_pc1 = map(disc_people, process_subcloud_people, pc = 1, direction = "negative"),
-    
-    # Separate people for PCA2 positive/negative poles
     positive_people_pc2 = map(disc_people, process_subcloud_people, pc = 2, direction = "positive"),
     negative_people_pc2 = map(disc_people, process_subcloud_people, pc = 2, direction = "negative")
   ) |> 
   mutate(
-    # Get average topic scores for the positive people in PCA1
     topic_avg_positive_pc1 = map(positive_people_pc1, .f = \(x) {
       people_portfolios |> 
         filter(vedidk %in% x) |>
         summarise(across(starts_with("topic"), mean))
     }),
     
-    # Get average topic scores for the negative people in PCA1
     topic_avg_negative_pc1 = map(negative_people_pc1, .f = \(x) {
       people_portfolios |> 
         filter(vedidk %in% x) |>
         summarise(across(starts_with("topic"), mean))
     }),
     
-    # Get average topic scores for the positive people in PCA2
     topic_avg_positive_pc2 = map(positive_people_pc2, .f = \(x) {
       people_portfolios |> 
         filter(vedidk %in% x) |>
         summarise(across(starts_with("topic"), mean))
     }),
     
-    # Get average topic scores for the negative people in PCA2
     topic_avg_negative_pc2 = map(negative_people_pc2, .f = \(x) {
       people_portfolios |> 
         filter(vedidk %in% x) |>
@@ -383,7 +377,6 @@ Do we get the contributing topics ?
 subcloud_overepresentation <- subcloud_topics |> 
   select(freq_ford, disc_topics, topic_avg_positive_pc1, topic_avg_negative_pc1, topic_avg_positive_pc2, topic_avg_negative_pc2) |> 
   mutate(
-    # Calculate topic scores for PCA1 and PCA2
     topic_scores_pc1 = map2(topic_avg_positive_pc1, topic_avg_negative_pc1, \(x, y) {
       numerator_vec <- colSums(x) 
       denominator_vec <- colSums(x) + colSums(y)
@@ -396,7 +389,6 @@ subcloud_overepresentation <- subcloud_topics |>
     })
   ) |> 
   mutate(
-    # Filter only disciplinary relevant topics
     topic_scores_pc1_filtered = map2(disc_topics, topic_scores_pc1, \(disc_topics, topic_scores) {
       topic_scores <- topic_scores[names(disc_topics)]
       topic_scores <- topic_scores[topic_scores > 0 & topic_scores < 0.5 | topic_scores > 0.5 & topic_scores < 1]
@@ -634,6 +626,15 @@ disciplines_by_sdev <- sub_pca_enriched |>
   arrange(desc(cum_sdev))
 ```
 
+Try another approach by sum the variances (not the sd)
+
+```{r}
+disciplines_by_var <- sub_pca_enriched |> 
+  mutate(cum_var = map_dbl(local_sdev, ~sum(.x^2))) |> 
+  select(freq_ford, cum_var) |> 
+  arrange(desc(cum_var))
+```
+
 Tentative vizualization
 
 ```{r}
@@ -678,4 +679,35 @@ params <- list(
 quarto::quarto_render(here::here("chapter.qmd"), 
 execute_params = params,
 output_format = "pdf")
+```
+
+```{r}
+# Compute mean and SD of cumulative variance
+mean_var <- mean(disciplines_by_var$cum_var)
+sd_var <- sd(disciplines_by_var$cum_var)
+
+# Classify disciplines by level of homology based on cumulative variance
+disciplines_by_var <- disciplines_by_var |>
+  mutate(group = case_when(
+    cum_var >= mean_var + sd_var ~ "high level of homology",
+    cum_var <= mean_var - sd_var ~ "low level of homology",
+    TRUE ~ "middleish level of homology"
+  ))
+
+# Color palette
+wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
+group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+
+# Plot
+ggplot(disciplines_by_var, aes(x = reorder(freq_ford, cum_var), y = cum_var, fill = group)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = group_colors) +
+  labs(
+    title = "Cumulative explained variance by discipline",
+    x = "",
+    y = "Cumulative variance (?? PC variances)",
+    fill = "Level of homology"
+  ) +
+  theme_minimal(base_size = 10)
 ```

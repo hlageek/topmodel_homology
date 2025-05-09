@@ -8,50 +8,63 @@ params:
 
 ## Abstract
 
-This chapter aims to analyze homologies between disciplinary spaces of position-takings within the global framework of virtually all research funded in the Czech Republic over two decades. Our objectives are threefold: *first*, we show how topic modeling suits the homology framework by enabling comparisons of oppositional structures based on topic distributions, with reference to the global space of science as constructed by the donut. *Second*, we emphasize that topic models are of crucial interest when working on semantic structures, especially when combined with geometrical data analysis-in this case, principal component analysis (PCA). To this end, we propose a novel approach, derived from class-specific multiple correspondence analysis, to shed light on the specific distribution of topics-and hence the structure-of disciplinary spaces of position-takings, with reference to the cognitive structure of a global space of science. *Third*, our methodological and empirical work emphasizes the challenges of dealing with levels of abstraction. Methodologically, we contribute to the ongoing debate among researchers interested in geometrical data analysis about how to compare fields. Constructing disciplinary spaces of position-takings separately is informative about the internal cognitive structure of disciplines. However, comparing across separately constructed spaces inevitably raises the issue of comparing between different distance scales. Theoretically, we therefore use our empirical material to reflect on what level partial homologies would be found. We combine an informed analysis of the most structuring topics at the disciplinary level with a measure of degree of homology-the Yann score-of the disciplinary structure with the structure of the global space. Our methodology, which infers disciplinary structures from their distribution in a broader space, thus allows us to assess the extent to which each discipline is associated with-or is homologous to-the structure of science.
+This chapter aims to analyze homologies between disciplinary spaces of position-takings within the global framework of virtually all research funded in the Czech Republic over two decades. Our objectives are threefold: *first*, we show how topic modeling suits the homology framework by enabling comparisons of oppositional structures based on topic distributions, with reference to the global space of science as constructed by the donut. *Second*, we emphasize that topic models are of crucial interest when working on semantic structures, especially when combined with geometrical data analysis-in this case, principal component analysis (PCA). To this end, we propose a novel approach, derived from class-specific multiple correspondence analysis, to shed light on the specific distribution of topics-and hence the structure-of disciplinary spaces of position-takings, with reference to the cognitive structure of a global space of science. *Third*, our methodological and empirical work emphasizes the challenges of dealing with partiality and levels of abstraction. The focus on modelizing a distribution of topics under the form of a space of position-takings also raises the question of the relationship between homology and the relative autonomy of disciplines. To venture into these crucial questions for field theory, this chapter engages with homologies by proposing a methodologically-driven reflection with evidence from research topics as spaces of position-takings.
 
 ## 1. Introduction
 
-\[why study homologies in position-takings - in scientific fields - general framework of theoretical concern + methodological concern\].
+Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications (Mohr & Bogdanov, 2013, Daenekindt & Huisman, 2020; Schwemmer and Wieczorek, 2020). Various implementations, including Bayesian inference (Blei et al., 2003), semantic networks (Callon et al., 1983) and neural network-based embeddings (Mikolov et al., 2013; Kozlowski et al., 2021; Grootendorst, 2022) have flourished in recent literature. As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a finite set of topics, or distributions over vocabulary, which are typically interpretable by domain experts (Blei, 2012; Benz et al., 2025). Sociological applications of topic modeling tend to adopt its operational definition from computer science and information retrieval and, therefore, predominantly revolve around interpreting or discovering particular topics in large corpora (Kozlowski et al., 2019).
 
-Topic modeling is a suite of information retrieval algorithms that has grown popular in sociological applications. Various implementations, including Bayesian inference, semantic networks and neural network-based embeddings have flourished in recent literature. As a dimensionality reduction technique, topic modeling assumes that the content of documents can be described by a finite set of topics, or distributions over vocabulary, which are typically interpretable by domain experts. Sociological applications of topic modeling tend to adopt its operational definition from computer science and information retrieval and, therefore, predominantly revolve around interpreting or discovering particular topics in large corpora. There is consequently a notable scarcity of studies that would develop this method from a distinctively sociological standpoint. Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. By highlighting the often overlooked feature of topic models, namely the representation of documents as distribution over topics, we emphasize the intrinsically relational character of topic models. In doing so, we aim to demonstrate how topic models empower sociologists to study the creation of symbolic values and their structuration according to the specific logic of different linguistic markets. The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures. In this context, we propose to illustrate how the relationality of topic models renders them useful tools for examining homologies between discursive spaces, with empirical evidence from the scientific field.
+There is consequently a notable scarcity of studies that would develop this method from a distinctively sociological standpoint. Here, we propose to shift the perspective and argue for a sociological appropriation of the method that would focus on the structure of discourse that surfaces in the latent topic space. By highlighting the often overlooked feature of topic models, namely the representation of documents as distribution over topics, we emphasize the intrinsically relational character of topic models. In doing so, we aim to demonstrate how topic models empower sociologists to study the creation of symbolic values and their structuration according to the specific logic of different linguistic markets. The framework of the collective book lends itself perfectly to such task, namely to demonstrate the sociological potential of topic models to uncover homological structures. In this context, we propose to illustrate how the relationality of topic models renders them useful tools for examining homologies between discursive spaces, with empirical evidence from the scientific field.
 
-The tentative structure of the proposed chapter is as follows. In a first *theoreticaly* section, we engage with homology in scientific fields and build our argument for considering topic spaces as spaces of position-takings. In a second *methodological* section, we develop pour research strategy and present our data and method. In a third *empirical* section, we present our results in three steps: (a) the space of topics and its main dimension of opposition, (b) the subcoulds of disciplines and their distribution within the global space, (c) exemplify extreme cases of strong (biological sciences) and weak (law) homology to the global space of topics. In a fourth *discussion* section, we address challenges of identifying and interpretating homologies in spaces of scientific position-takings, emphasizing the crucial issues of *partiality* and dealing with *levels of abstraction*.
+*Methodologically*, we contribute to the ongoing debate among researchers in geometrical data analysis on how best to compare scientific fields. Constructing disciplinary spaces of position-takings separately is seminally used for revealing the internal cognitive structures. However, comparisons across independently constructed spaces inevitably raise the issue of differing distance scales. This challenge is further compounded when focusing on research topics, which are often highly granular and discipline-specific, making cross-field comparison even more difficult. Moreover, while the extremes of these spaces are typically used to interpret the underlying principles of opposition, these very extremes tend to be even more discipline-specific. As a result, it becomes difficult to distill global oppositions that can serve as a common basis for comparison across fields. Therefore, we suggest using a derivative of class-specific multiple correspondence analysis to shed light on the specific distribution of topics-and hence the structure-of disciplinary spaces of position-takings, with reference to the cognitive structure of a global space of science.
+
+*Theoretically*, we draw on our empirical material to reflect on what level partial homologies would be found. We also illustrate the tension between levels of abstraction, i.e., what "counts" to the structure of disciplines and what may be interpreted as homologeous principles of vision and division to the global space of topics. For such aim, we combine an informed analysis of the most structuring topics at the disciplinary level with a measure of degree of homology-the Yann score-of the disciplinary structure with the structure of the global space. Our methodology, which infers disciplinary structures from their distribution in a broader space, thus allows us to assess the extent to which each discipline is associated with-or is homologous to-the structure of science.
+
+The tentative structure of the proposed chapter is as follows. In a first *theoretical* section, we engage with homology in scientific fields and build our argument for considering topic spaces as spaces of position-takings. In a second *methodological* section, we develop pour research strategy and present our data and method. In a third *empirical* section, we present our results in three steps: (a) the space of topics and its main dimension of opposition, (b) the sub-coulds of disciplines and their distribution within the global space, (c) exemplify extreme cases of strong (biological sciences) and weak (law) homology to the global space of topics. In a fourth *discussion* section, we address challenges of identifying and interpreting homologies in spaces of scientific position-takings, emphasizing the crucial issues of *partiality* and dealing with *levels of abstraction*.
 
 ## 2. Homologies in spaces of position-takings: evidence from the scientific field
 
-With reference to Bourdieu, the concept of homology primarily refers to the relationship between positions within a field and the practices (or position-takings) that emerge from those positions (Bourdieu, 1979). This relationship is underpinned by the concept of *habitus*, where personal dispositions associated with agents position, function as structuring principles of action. While much of the sociological literature focuses on homology between positions and position-takings, our focus shifts to *semantic/cognitive spaces*-which, of course, are ultimately grounded in the positions of agents within the scientific field (Wacquant, 1989). These spaces of position-takings reflect the cognitive and epistemological structures that shape how knowledge is produced and legitimized within disciplines.
+With reference to Bourdieu, the concept of homology primarily refers to the relationship between positions within a field and the practices (or position-takings) that emerge from those positions (Bourdieu, 1979). This relationship is underpinned by the concept of *habitus*, where personal dispositions associated with agents position, function as structuring principles of action. While much of the sociological literature focuses on homology between positions and position-takings, our focus shifts to *semantic/cognitive spaces*-which, of course, are ultimately grounded in the positions of agents within the scientific field. These spaces of position-takings reflect the cognitive and epistemological structures that shape how knowledge is produced and legitimized within disciplines.
 
-In Bourdieu's theory, the scientific field is a subspecies of the larger cultural production field, itself embedded within the broader social space (Bourdieu, 2015). Homology between these spaces implies that the principles of vision and division that govern the field of science are not isolated but related to the larger social structures (Bourdieu, 1996). However, there is also the issue of *relative autonomy*-scientific fields, while influenced by broader social structures, maintain a degree of independence (Bourdieu, 1984). This raises a crucial question: *Are less homologous disciplines necessarily more autonomous?* There is something to explore here. The less homogenous a discipline's principles of vision and division, the more likely it may be to retain its autonomy, carving out its own distinct epistemological and cultural space, jurisdiction, or settlement (Abbott, 2001). This relationship between homology and autonomy invites further inquiry, especially in the context of how different disciplines navigate the complex interaction between their own internal logics and the broader societal structures. The editors' focus on homology provides valuable insights, but as sociologists of science, we need to extend this discussion by engaging more critically with the concept of *relative autonomy* and how it shapes the practices and power dynamics within scientific fields. Focusing solely on homology may obscure the dynamics of how disciplines are structured and evolve in relation to the larger social space.
+In Bourdieu's theory, the scientific field is a subspecies of the larger cultural production field, itself embedded within the broader social space (Bourdieu, 2015). Homology between these spaces implies that the principles of vision and division that govern the field of science are not isolated but related to the larger social structures (Bourdieu, 1996). However, there is also the issue of *relative autonomy*-scientific fields, while influenced by broader social structures, maintain a degree of independence (Bourdieu, 1984). This raises a crucial question: *Are less homologous disciplines necessarily more autonomous?* There is something to explore here. The less homogenous a discipline's principles of vision and division, the more likely it may be to retain its autonomy, carving out its own distinct epistemological and cultural space, jurisdiction, or settlement (Abbott, 2001). This relationship between homology and autonomy invites further inquiry, especially in the context of how different disciplines navigate the complex interaction between their own internal principles of opposition and their embeddedness into a broader *space of possible position-takings*.
 
-The scientific field is highly specific in that it is one of the most autonomous subfields within cultural production, characterized by distinct barriers to entry and a specific set of rules for recognition (Bourdieu, 2001). As a field of action, it is defined by the power of agents to determine the boundaries of what is considered scientific knowledge and valid practices. According to Bourdieu's *Homo Academicus* (1984a), the scientific field operates as a field of symbolic power, where the production and validation of knowledge is a collective activity regulated by the internal logic of the field. Scientific fields have often been conceptualized as relatively stable structures serving as fundamental organizational units that structure the production of scientific knowledge. They provide specific schemes of organization, perception and action, ensuring their continuity over time (Whitley, 1984; Lenoir, 1997; Bourdieu, 1997), while also shaping research agendas, establishing standards of evaluation, and governing scientific careers (Heilbron, 2004; Gingras, 2012). These entities are seminally analyzed through their process of autonomization, i.e., the progressive implementation of several institutional markers, such as dedicated journals, scientific societies and events, or academic units. However, this approach alone is likely to fail at identifying the social and cognitive configurations as resulting from agent's values and action. Indeed, the classical conceptualization of scientific fields as primarily depending of the distribution of agent's resources inevitably lead to consider disciplinary specialties, research topics and scientific practices as supplementary variables. Such a focus on science through the lens of institutions and their relative autonomy in relation to competing fields has accounted for the lion's share of sociological research on science (Bourdieu, 2001; Elias, 2017). This dominant approach is typically adopting a retrospective, front-to-back perspective, hence reconstructing our understanding of scientific fields from the established forms of scientific entities, where change may only occur at the borderland of disciplines.
+\[Role of language / linguistic market\]
 
-In this chapter, we propose to focus on research topics as a central mechanism of distinction within the scientific field. Instead of presupposing that research topics are distributed according to the structure of the space of relation of agents' objective positions, we operationalize a space of position-takings, where distances are measured by the semantic similarity between topics. In other term, we focus on the distribution of position-takings, rather than the distribution of positions. Exactly like the seminal use of geometrical data analysis in fields' approach, we draw on principal component analysis to identify the principal dimensions of oppositions in topic spaces. As Abbott (1995) puts it when analyzing how scientific fields emerge, merge, endure, or dissolve over time, one must analyze to what extent initial sites of difference crystallize into durable scientific structures, as the introduction of a new boundary often delegitimizes old distinctions or emphasizes new ones-either yoking entities together or dividing them-ultimately amounting to "a projection from a social space of higher dimensionality to one of lower dimensionality" (p. 871).
+Following Bourdieu's notion of the linguistic market (Bourdieu, 1971), different modes of expression within scientific fields carry unequal symbolic value, depending on their conformity with the dominant norms of the field (Bourdieu, 1991a). The ability to speak the "legitimate" language of science-whether through methodological rigor, theoretical sophistication, or stylistic conformity-is not equally distributed and becomes a form of symbolic capital. Linguistic choices are not neutral: they function as markers of position within the field and help to reinforce or contest dominant epistemological structures. In this sense, the space of position-takings is not only structured by topics or research objects but also by the linguistic strategies through which actors stake claims, gain recognition, or contest boundaries. The value of a given discourse thus depends on its position within the linguistic market of the field and reflects the power relations that shape access to legitimacy.
 
--   
-
-    ### Role of language / linguistic market \[this is for Radim or Yann\]
-
--   "linguistic market" â€“ how different ways of speaking/writing hold different values within a field
-
--   symbolic capital - how linguistic choices reflect and shape an actor's position and authority within the field
-
--   the space of possible position-takings
+Scientific practices and epistemological frameworks do not inherently possess the capacity for action; they rather depend on the space of possibilities offered by the 'material' historical conditions of scientific activity (Bourdieu, 1991b; Benz & Bühlmann, 2024). In the background of an analysis of topic spaces, one must keep in mind that the scientific field is highly specific and one of the most autonomous within the field of cultural production, characterized by distinct barriers to entry and a specific set of rules for recognition (Bourdieu, 2001). As a field of action, it is defined by the power of agents to determine the boundaries of what is considered scientific knowledge and valid practices. According to Bourdieu's *Homo Academicus* (1984), the scientific field operates as a field of symbolic power, where the production and validation of knowledge is a collective activity regulated by the internal logic of the field. Scientific fields have often been conceptualized as relatively stable structures serving as fundamental organizational units that structure the production of scientific knowledge. They provide specific schemes of organization, perception and action, ensuring their continuity over time (Whitley, 1984; Lenoir, 1997; Bourdieu, 1997), while also shaping research agendas, establishing standards of evaluation, and governing scientific careers (Heilbron, 2004; Gingras, 2012). These entities are seminally analyzed through their process of autonomization, i.e., the progressive implementation of several institutional markers, such as dedicated journals, scientific societies and events, or academic units. However, this approach alone is likely to fail at identifying the social and cognitive configurations as resulting from agent's values and action. Indeed, the classical conceptualization of scientific fields as primarily depending of the distribution of agent's resources inevitably lead to consider disciplinary specialties, research topics and scientific practices as supplementary variables. Such a focus on science through the lens of institutions and their relative autonomy in relation to competing fields has accounted for the lion's share of sociological research on science (Bourdieu, 2001; Elias, 2017). This dominant approach is typically adopting a retrospective, front-to-back perspective, hence reconstructing our understanding of scientific fields from the established forms of scientific entities, where change may only occur at the borderland of disciplines.
 
 ## 3. Research strategy, method and data
 
-### Challenges for representing position-takings
-
--   large volumes of text
--   complexity of capturing meanings in language
--   qualitative methods difficult to map onto quantitative models
+In this chapter, we propose to focus on research topics as a central mechanism of distinction within the scientific field. Instead of presupposing that research topics are distributed according to the structure of the space of relation of agents' objective positions, we operationalize a space of position-takings, where distances are measured by the semantic similarity between topics. In other term, we focus on the distribution of position-takings, rather than the distribution of positions. Exactly like the seminal use of geometrical data analysis in fields' approach, we draw on principal component analysis to identify the principal dimensions of oppositions in topic spaces. As Abbott (1995) puts it when analyzing how scientific fields emerge, merge, endure, or dissolve over time, one must analyze to what extent initial sites of difference crystallize into durable scientific structures, as the introduction of a new boundary often delegitimizes old distinctions or emphasizes new ones-either yoking entities together or dividing them-ultimately amounting to "a projection from a social space of higher dimensionality to one of lower dimensionality" (p. 871).
 
 ### Topic models as tools for position-taking analysis
 
--   embedding approach
--   probabilistic approach
--   from corpuses to spaces
+Mapping semantic relationships inherently presents challenges in representing position-takings. First, dealing with potentially very large volumes of text implies a complexity of processing and analyzing information, which can overwhelm traditional methods. Topic modeling techniques seminally infer 'latent structures' from textual data using either Bayesian probabilistic models or neural network-based embeddings. While these methods are highly efficient in uncovering underlying patterns, they remain black boxes-ish, offering limited transparency into how specific topics are derived and how individual terms contribute to these latent structures, which remains a challenge for a sociological appropriation of topic models (DiMaggio, 2015).
+
+Moreover, the challenge of capturing nuanced meanings in language becomes particularly pronounced, as language often carries multiple interpretations depending on context. Embeddings-drived topic models have benefited from important developments, which aim at grasping the variety of meanings and definitions of words (Vaswani et al., 2017). At the same time, using these techniques entails the risk of lacking transparency about the provenance of the data used for training (Bender et al., 2021), potentially introducing biases into the analysis (Nemani et al., 2023). Moreover, semantic relations that are specific to the field under study may be obscured by general language usage, where associations such as flowers with pleasantness and insects with unpleasantness can distort domain-relevant meanings (Caliskan et al., 2017). In a general manner, the qualitative nature of position-takings is difficult to map onto quantitative models, as these models may struggle to fully account for the subtlety and depth of individual and collective stances within a given field.
+
+One elegant way to sort of deal with these consideration is to cross-fertilize topic models with geometric data analysis. This not only offers a methodological solution, but also the possibility, when combined with a field perspective, to sociologically engage with the understanding of underlying principle of vision and division underlying topic spaces. Kropp and Larsen (2023) have proposed a transition "from corpus to space" by coupling LDA with multiple correspondence analysis.
+
+### Method and data
+
 -   our approach: TopSBM and compositional data analysis
+
+-   class-specific PCA
+
+-   the Yann's score
+
+    What I think is Yann's score is a sum of standard deviations of the
+    subcloud PCs (at some point we must drop the subcloud lingo, but for
+    internal use, it is ok). Intuitively, it should measure how comfortable
+    each discipline feels when spreading itself in the global space across
+    its 42 dimensions.
+
+    In PCA, standard deviations (`sdev`) refer to the square roots of the eigenvalues, which measure how much variance is explained by each principal component.
+
+    **Summing standard deviations** is **not** a standard statistical operation because **variances**, not standard deviations, are additive.
+
+    So if your goal is to measure **total variability**, you probably want to **sum the variances** (i.e., the squares of the standard deviations), not the standard deviations themselves.
 
 #### Sociological relevance of topic modeling
 
@@ -127,6 +140,46 @@ ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, 
 
 \[text\]
 
+Yann's score by summing the variances
+
+```{r}
+#| fig-width: 10
+#| fig-height: 7
+#| echo: FALSE
+#| warning: FALSE
+#| message: FALSE
+#| fig.cap: "Yann score. sum of variances"
+disciplines_by_var <- sub_pca_enriched |> 
+  mutate(cum_var = map_dbl(local_sdev, ~sum(.x^2))) |> 
+  select(freq_ford, cum_var) |> 
+  arrange(desc(cum_var))
+
+mean_var <- mean(disciplines_by_var$cum_var)
+sd_var <- sd(disciplines_by_var$cum_var)
+
+disciplines_by_var <- disciplines_by_var |>
+  mutate(group = case_when(
+    cum_var >= mean_var + sd_var ~ "high level of homology",
+    cum_var <= mean_var - sd_var ~ "low level of homology",
+    TRUE ~ "middleish level of homology"
+  ))
+
+wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
+group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+
+ggplot(disciplines_by_var, aes(x = reorder(freq_ford, cum_var), y = cum_var, fill = group)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = group_colors) +
+  labs(
+    title = "Cumulative explained variance by discipline",
+    x = "",
+    y = "Cumulative variance (sum of PC variances)",
+    fill = "Level of homology"
+  ) +
+  theme_minimal(base_size = 10)
+```
+
 \[text\]
 
 ```{r}
@@ -187,11 +240,11 @@ kable(bio_topics, caption = "Table 1. Top 10 most contributive topics to PCA 1 a
 |----------|---------------|---------------|------------------------|
 
 |         |                                              |                                                   |                        |
-|---------|----------------------------------------------|---------------------------------------------------|------------------------|
+|--------------|---------------------|------------------------|--------------|
 | **PC1** | Biomedicine, Molecular, Laboratory (Culture) | Faunistics, Ecology, Natural Description (Nature) | **Nature vs. Culture** |
 
 |         |                                                    |                                                   |                       |
-|---------|----------------------------------------------------|---------------------------------------------------|-----------------------|
+|--------------|-----------------------|----------------------|--------------|
 | **PC2** | Zoology, Parasitology, Reproductive Biology (Life) | Bioenergy, Photosynthesis, Reclamation (Non-Life) | **Life vs. Non-Life** |
 
 \[not so bad actually\]
@@ -254,19 +307,79 @@ kable(bio_topics, caption = "Table 2. Top 10 most contributive topics to PCA 1 a
 |----------|---------------|---------------|------------------------|
 
 |         |                                                   |                                              |                                       |
-|---------|---------------------------------------------------|----------------------------------------------|---------------------------------------|
+|---------------|----------------------|--------------------|----------------|
 | **PC1** | Sociocultural, Human Identity, Politics, Religion | Applied Technology, Infrastructure, Business | **Socio-political vs. Technological** |
 
 |         |                                             |                                                 |                                               |
-|---------|---------------------------------------------|-------------------------------------------------|-----------------------------------------------|
+|---------------|------------------|--------------------|-------------------|
 | **PC2** | Human-centered Life, Social Issues, Biology | Systemic/Structural Forces, Economy, Technology | **Life-centered vs. Systemic/Organizational** |
 
 \[we must ensure our interpretation, that Law does not properly reflection conceptual distinctions of the global PCA\]
 
-## Discussion
+## 5. Discussion
 
 ### Homologies in position-takings
 
-## Conclusion
+## 6. Conclusion
 
 ### Sociological appropriation of topic models
+
+## References
+
+Abbott, A. (1995). Things of boundaries. *Social Research*, 62, 857-882.
+
+Abbott, A. (2001). *Chaos of disciplines*. University of Chicago Press.
+
+Benz, P., & Bühlmann, F. (2024). Structural Power and Epistemologies in the Scientific Field: Why a Rapid Reconciliation Between Functional and Evolutionary Biology is Unlikely. Minerva, 62, 229-251. <https://doi.org/10.1007/s11024-023-09520-0.>
+
+Benz, P., Kropp, K., Nobel, T.C., & Rossier, T. (2024). Homologies in fields of cultural production. Evidence from the European scientific field. *Poetics*, *107*, 101945.[ https://doi.org/10.1016/j.poetic.2024.101945](https://doi.org/10.1016/j.poetic.2024.101945).
+
+Blei, D.M., Ng, A.Y., & Jordan, M.I. (2003). Latent Dirichlet Allocation. *Journal* *of machine Learning research*, 3, 993-1022.
+
+Blei, D.M. (2012). Probabilistic Topic Models. *Communications of the ACM*, 55(4), 77-84.[ https://doi.org/10.1145/2133806.2133826](https://doi.org/10.1145/2133806.2133826).
+
+Bourdieu, P. (1971). Le marché des biens symboliques. *L'année sociologique*, *22*, 49-126.
+
+Bourdieu, P. (1979). *La Distinction. Critique sociale du jugement*. Éditions de Minuit.
+
+Bourdieu, P. (1984a). *Homo Academicus*. Éditions de Minuit.
+
+Bourdieu, P. (1991a). *Language and symbolic power*. Polity.
+
+Bourdieu, P. (1991b). The peculiar history of scientific reason. *Sociological forum*, 6,3-26. <https://doi.org/10.1007/BF01112725>.
+
+Bourdieu, P. (2001). *Science de la science et réflexivité*. Raisons d'Agir.
+
+Caliskan, A., Bryson, J. J., & Narayanan, A. (2017). Semantics derived automatically from language corpora contain human-like biases. Science, 356(6334), 183-186. <https://doi.org/10.1126/science.aal4230.>
+
+Callon, M., Courtial, J. P., Turner, W. A., & Bauin, S. (1983). From translations to problematic networks: An introduction to co-word analysis. Social Science Information, 22(2), 191-235. <https://doi.org/10.1177/053901883022002003.>
+
+Daenekindt, S., & Huisman, J. (2020). Mapping the scattered field of research on higher education. A correlated topic model of 17,000 articles, 1991-2018. Higher Education, 80, 571-587. <https://doi.org/10.1007/s10734-020-00500-x.>
+
+DiMaggio, P., Nag, M., & Blei, D. (2013). Exploiting affinities between topic modeling and the sociological perspective on culture: application to newspaper coverage of US government arts funding. Poetics, 41(6), 570-606. <https://doi.org/10.1016/j.poetic.2013.08.004.>
+
+DiMaggio, P. (2015). Adapting computational text analysis to social science (and vice versa). Big Data & Society, 2(2), <https://doi.org/10.1177/2053951715602908.>
+
+Grootendorst, M. (2022). BERTopic: Neural topic modeling with a class-based TF-IDF procedure. arXiv preprint. <https://doi.org/10.48550/arXiv.2203.05794.>
+
+Hladík, R., & Renisio, Y. (2025). Mapping knowledge: Topic analysis of science locates researchers in disciplinary landscape. *Poetics*, 108, 101950.[ https://doi.org/10.1016/j.poetic.2024.101950](https://doi.org/10.1016/j.poetic.2024.101950).
+
+Kozlowski, A. C., Taddy, M., & Evans, J. A. (2019). The geometry of culture: Analyzing the meanings of class through word embeddings. American Sociological Review, 84(5), 905-949. <https://doi.org/10.1177/0003122419877135.>
+
+Kozlowski, D., Dusdal, J., Pang, J., & Zilian, A. (2021). Semantic and relational spaces in science of science: deep learning models for article vectorisation. Scientometrics, 126(7), 5881-5910. <https://doi.org/10.1007/s11192-021-03984-1.>
+
+Le Roux, B., & Rouanet, H. (2004). *Geometric Data Analysis: From Correspondence* *Analysis to Structured Data Analysis*. Kluwer.
+
+Mikolov, T., Chen, K., Corrado, G., & Dean, J. (2013). Efficient estimation of word representations in vector space. arXiv preprint. <https://doi.org/10.48550/arXiv.1301.3781.>
+
+Mohr, J.W., & Bogdanov, P. (2013). Introduction-Topic models: What they are and why they matter. *Poetics*, 41(6), 545-569.[ https://doi.org/10.1016/j.poetic.2013.10.001](https://doi.org/10.1016/j.poetic.2013.10.001).
+
+Mørk, S.D., & Larsen, A.G. (2025). Designed for success or failure: Differences in funding and rejection in the space of applications to the Danish Art Foundation among craftsmen and designers. *Poetics*, 108, 101959.[ https://doi.org/10.1016/j.poetic.2024.101959](https://doi.org/10.1016/j.poetic.2024.101959).
+
+Nemani, P., Joel, Y. D., Vijay, P., & Liza, F. F. (2023). Gender bias in transformers: A comprehensive review of detection and mitigation strategies. Natural Language Processing Journal, 6(12), 100047. <https://doi.org/10.1016/j.nlp.2023.100047.>
+
+Rossier, T., Benz, P., Larsen, A. G., & Kropp, K. (2023). The Space of Research Topics in Economics: Scientific Position-Takings and Individual Positions in Swiss Economic Science. OEconomia. History, Methodology, Philosophy, 13(2), 427-473. <https://doi.org/10.4000/oeconomia.15359.>
+
+Schwemmer, C., & Wieczorek, O. (2020). The methodological divide of sociology: Evidence from two decades of journal publications. Sociology, 54(1), 3-21. <https://doi.org/10.1177/0038038519853146.>
+
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention is all you need. arXiv preprint. <https://doi.org/10.48550/arXiv.1706.03762.>
