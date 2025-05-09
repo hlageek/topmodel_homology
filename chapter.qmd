@@ -24,7 +24,15 @@ The tentative structure of the proposed chapter is as follows. In a first *theor
 
 ## 2. Homologies in spaces of position-takings: evidence from the scientific field
 
+Pierre
+
 With reference to Bourdieu, the concept of homology primarily refers to the relationship between positions within a field and the practices (or position-takings) that emerge from those positions (Bourdieu, 1979). This relationship is underpinned by the concept of *habitus*, where personal dispositions associated with agents position, function as structuring principles of action. While much of the sociological literature focuses on homology between positions and position-takings, our focus shifts to *semantic/cognitive spaces*-which, of course, are ultimately grounded in the positions of agents within the scientific field. These spaces of position-takings reflect the cognitive and epistemological structures that shape how knowledge is produced and legitimized within disciplines.
+
+Radim
+
+With reference to field theory in sociology, the concept of homology primarily refers to the relationship between positions within a field and the practices (or position-takings) that emerge from those positions (Bourdieu, 1979). This relationship is underpinned by the concept of *habitus*, where personal dispositions associated with agents position, function as structuring principles of action. While much of the sociological literature focuses on homology between positions across fields, our focus shifts to the homology within the same field, between its constitutive spaces of of positions and position-takings. The latter is a symbolic space of semantic or cognitive character structured by the positions of agents within the social field (Wacquant, 1989). However, a degree of relative autonomy of the symbolic space must be recognized, especially in a field such as science which is interested in disinterestedness and whose specific *illusio* lies precisely in the claim to settle disputes solely on intellectual terms. Thus, if we do not want to subscribe to a deterministic assumptions about how people take stances that can be reduced to a direct self-interest, homology appears as a concept that can account for the structural alignment of two spaces without a recourse to mechanical causality. A study of cognitive and epistemological structures that shape how knowledge is produced and legitimized within disciplines provides a window on how homology operates in the spaces of position-takings.
+
+end of conflict
 
 In Bourdieu's theory, the scientific field is a subspecies of the larger cultural production field, itself embedded within the broader social space (Bourdieu, 2015). Homology between these spaces implies that the principles of vision and division that govern the field of science are not isolated but related to the larger social structures (Bourdieu, 1996). However, there is also the issue of *relative autonomy*-scientific fields, while influenced by broader social structures, maintain a degree of independence (Bourdieu, 1984). This raises a crucial question: *Are less homologous disciplines necessarily more autonomous?* There is something to explore here. The less homogenous a discipline's principles of vision and division, the more likely it may be to retain its autonomy, carving out its own distinct epistemological and cultural space, jurisdiction, or settlement (Abbott, 2001). This relationship between homology and autonomy invites further inquiry, especially in the context of how different disciplines navigate the complex interaction between their own internal principles of opposition and their embeddedness into a broader *space of possible position-takings*.
 
@@ -54,11 +62,7 @@ One elegant way to sort of deal with these consideration is to cross-fertilize t
 
 -   the Yann's score
 
-    What I think is Yann's score is a sum of standard deviations of the
-    subcloud PCs (at some point we must drop the subcloud lingo, but for
-    internal use, it is ok). Intuitively, it should measure how comfortable
-    each discipline feels when spreading itself in the global space across
-    its 42 dimensions.
+    What I think is Yann's score is a sum of standard deviations of the subcloud PCs (at some point we must drop the subcloud lingo, but for internal use, it is ok). Intuitively, it should measure how comfortable each discipline feels when spreading itself in the global space across its 42 dimensions.
 
     In PCA, standard deviations (`sdev`) refer to the square roots of the eigenvalues, which measure how much variance is explained by each principal component.
 
@@ -240,11 +244,11 @@ kable(bio_topics, caption = "Table 1. Top 10 most contributive topics to PCA 1 a
 |----------|---------------|---------------|------------------------|
 
 |         |                                              |                                                   |                        |
-|--------------|---------------------|------------------------|--------------|
+|----------------|-------------------|----------------------|----------------|
 | **PC1** | Biomedicine, Molecular, Laboratory (Culture) | Faunistics, Ecology, Natural Description (Nature) | **Nature vs. Culture** |
 
 |         |                                                    |                                                   |                       |
-|--------------|-----------------------|----------------------|--------------|
+|----------------|---------------------|--------------------|----------------|
 | **PC2** | Zoology, Parasitology, Reproductive Biology (Life) | Bioenergy, Photosynthesis, Reclamation (Non-Life) | **Life vs. Non-Life** |
 
 \[not so bad actually\]
@@ -307,11 +311,11 @@ kable(bio_topics, caption = "Table 2. Top 10 most contributive topics to PCA 1 a
 |----------|---------------|---------------|------------------------|
 
 |         |                                                   |                                              |                                       |
-|---------------|----------------------|--------------------|----------------|
+|-----------------|--------------------|-------------------|-----------------|
 | **PC1** | Sociocultural, Human Identity, Politics, Religion | Applied Technology, Infrastructure, Business | **Socio-political vs. Technological** |
 
 |         |                                             |                                                 |                                               |
-|---------------|------------------|--------------------|-------------------|
+|-----------------|-----------------|-------------------|------------------|
 | **PC2** | Human-centered Life, Social Issues, Biology | Systemic/Structural Forces, Economy, Technology | **Life-centered vs. Systemic/Organizational** |
 
 \[we must ensure our interpretation, that Law does not properly reflection conceptual distinctions of the global PCA\]
@@ -332,11 +336,11 @@ Abbott, A. (2001). *Chaos of disciplines*. University of Chicago Press.
 
 Benz, P., & Bühlmann, F. (2024). Structural Power and Epistemologies in the Scientific Field: Why a Rapid Reconciliation Between Functional and Evolutionary Biology is Unlikely. Minerva, 62, 229-251. <https://doi.org/10.1007/s11024-023-09520-0.>
 
-Benz, P., Kropp, K., Nobel, T.C., & Rossier, T. (2024). Homologies in fields of cultural production. Evidence from the European scientific field. *Poetics*, *107*, 101945.[ https://doi.org/10.1016/j.poetic.2024.101945](https://doi.org/10.1016/j.poetic.2024.101945).
+Benz, P., Kropp, K., Nobel, T.C., & Rossier, T. (2024). Homologies in fields of cultural production. Evidence from the European scientific field. *Poetics*, *107*, 101945.<https://doi.org/10.1016/j.poetic.2024.101945>.
 
 Blei, D.M., Ng, A.Y., & Jordan, M.I. (2003). Latent Dirichlet Allocation. *Journal* *of machine Learning research*, 3, 993-1022.
 
-Blei, D.M. (2012). Probabilistic Topic Models. *Communications of the ACM*, 55(4), 77-84.[ https://doi.org/10.1145/2133806.2133826](https://doi.org/10.1145/2133806.2133826).
+Blei, D.M. (2012). Probabilistic Topic Models. *Communications of the ACM*, 55(4), 77-84.<https://doi.org/10.1145/2133806.2133826>.
 
 Bourdieu, P. (1971). Le marché des biens symboliques. *L'année sociologique*, *22*, 49-126.
 
@@ -362,7 +366,7 @@ DiMaggio, P. (2015). Adapting computational text analysis to social science (and
 
 Grootendorst, M. (2022). BERTopic: Neural topic modeling with a class-based TF-IDF procedure. arXiv preprint. <https://doi.org/10.48550/arXiv.2203.05794.>
 
-Hladík, R., & Renisio, Y. (2025). Mapping knowledge: Topic analysis of science locates researchers in disciplinary landscape. *Poetics*, 108, 101950.[ https://doi.org/10.1016/j.poetic.2024.101950](https://doi.org/10.1016/j.poetic.2024.101950).
+Hladík, R., & Renisio, Y. (2025). Mapping knowledge: Topic analysis of science locates researchers in disciplinary landscape. *Poetics*, 108, 101950.<https://doi.org/10.1016/j.poetic.2024.101950>.
 
 Kozlowski, A. C., Taddy, M., & Evans, J. A. (2019). The geometry of culture: Analyzing the meanings of class through word embeddings. American Sociological Review, 84(5), 905-949. <https://doi.org/10.1177/0003122419877135.>
 
@@ -372,9 +376,9 @@ Le Roux, B., & Rouanet, H. (2004). *Geometric Data Analysis: From Correspondence
 
 Mikolov, T., Chen, K., Corrado, G., & Dean, J. (2013). Efficient estimation of word representations in vector space. arXiv preprint. <https://doi.org/10.48550/arXiv.1301.3781.>
 
-Mohr, J.W., & Bogdanov, P. (2013). Introduction-Topic models: What they are and why they matter. *Poetics*, 41(6), 545-569.[ https://doi.org/10.1016/j.poetic.2013.10.001](https://doi.org/10.1016/j.poetic.2013.10.001).
+Mohr, J.W., & Bogdanov, P. (2013). Introduction-Topic models: What they are and why they matter. *Poetics*, 41(6), 545-569.<https://doi.org/10.1016/j.poetic.2013.10.001>.
 
-Mørk, S.D., & Larsen, A.G. (2025). Designed for success or failure: Differences in funding and rejection in the space of applications to the Danish Art Foundation among craftsmen and designers. *Poetics*, 108, 101959.[ https://doi.org/10.1016/j.poetic.2024.101959](https://doi.org/10.1016/j.poetic.2024.101959).
+Mørk, S.D., & Larsen, A.G. (2025). Designed for success or failure: Differences in funding and rejection in the space of applications to the Danish Art Foundation among craftsmen and designers. *Poetics*, 108, 101959.<https://doi.org/10.1016/j.poetic.2024.101959>.
 
 Nemani, P., Joel, Y. D., Vijay, P., & Liza, F. F. (2023). Gender bias in transformers: A comprehensive review of detection and mitigation strategies. Natural Language Processing Journal, 6(12), 100047. <https://doi.org/10.1016/j.nlp.2023.100047.>
 
