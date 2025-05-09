@@ -651,13 +651,13 @@ sd_sdev <- sd(disciplines_by_sdev$cum_sdev)
 
 disciplines_by_sdev <- disciplines_by_sdev |>
   mutate(group = case_when(
-    cum_sdev >= mean_sdev + sd_sdev ~ "high level of homology",
-    cum_sdev <= mean_sdev - sd_sdev ~ "low level of homology",
-    TRUE ~ "middleish level of homology"
+    cum_sdev >= mean_sdev + sd_sdev ~ "low level of autonomy",
+    cum_sdev <= mean_sdev - sd_sdev ~ "high level of autonomy",
+    TRUE ~ "middleish level of autonomy"
   ))
 
 wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
-group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+group_colors <- setNames(wes_palette, c("high level of autonomy", "middleish level of autonomy", "low level of autonomy"))
 
 ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, fill = group)) +
   geom_col() +
@@ -681,14 +681,14 @@ sd_var <- sd(disciplines_by_var$cum_var)
 # Classify disciplines by level of homology based on cumulative variance
 disciplines_by_var <- disciplines_by_var |>
   mutate(group = case_when(
-    cum_var >= mean_var + sd_var ~ "high level of homology",
-    cum_var <= mean_var - sd_var ~ "low level of homology",
-    TRUE ~ "middleish level of homology"
+    cum_var >= mean_var + sd_var ~ "low level of autonomy",
+    cum_var <= mean_var - sd_var ~ "high level of autonomy",
+    TRUE ~ "middleish level of autonomy"
   ))
 
 # Color palette
 wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
-group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+group_colors <- setNames(wes_palette, c("high level of autonomy", "middleish level of autonomy", "low level of autonomy"))
 
 # Plot
 ggplot(disciplines_by_var, aes(x = reorder(freq_ford, cum_var), y = cum_var, fill = group)) +
