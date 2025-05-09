@@ -84,53 +84,9 @@ Fig2. The disciplines
 
 \[text\]
 
-```{r}
-#| fig-width: 10
-#| fig-height: 7
-#| echo: FALSE
-#| warning: FALSE
-#| message: FALSE
-#| fig.cap: "Yann score."
-
-load("data/for_chapter.Rda")
-
-library(tidyverse)
-
-disciplines_by_sdev <- sub_pca_enriched |> 
-  mutate(cum_sdev = map_dbl(local_sdev, sum)) |>
-  select(freq_ford, cum_sdev) |> 
-  arrange(desc(cum_sdev))
-library(wesanderson)
-
-mean_sdev <- mean(disciplines_by_sdev$cum_sdev)
-sd_sdev <- sd(disciplines_by_sdev$cum_sdev)
-
-disciplines_by_sdev <- disciplines_by_sdev |>
-  mutate(group = case_when(
-    cum_sdev >= mean_sdev + sd_sdev ~ "high level of homology",
-    cum_sdev <= mean_sdev - sd_sdev ~ "low level of homology",
-    TRUE ~ "middleish level of homology"
-  ))
-
-wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
-group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
-
-ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, fill = group)) +
-  geom_col() +
-  coord_flip() +
-  scale_fill_manual(values = group_colors) +
-  labs(
-    title = "Cumulative explained variance",
-    x = "",
-    y = "Cumulative standard deviation",
-    fill = "Yann's score"
-  ) +
-  theme_minimal(base_size = 10)
-```
-
 \[text\]
 
-Yann's score by summing the variances
+Yann's score of relative autonomy (sum of variances)
 
 ```{r}
 #| fig-width: 10
@@ -139,6 +95,11 @@ Yann's score by summing the variances
 #| warning: FALSE
 #| message: FALSE
 #| fig.cap: "Yann score. sum of variances"
+
+load("data/for_chapter.Rda")
+library(tidyverse)
+library(wesanderson)
+
 disciplines_by_var <- sub_pca_enriched |> 
   mutate(cum_var = map_dbl(local_sdev, ~sum(.x^2))) |> 
   select(freq_ford, cum_var) |> 
@@ -149,13 +110,13 @@ sd_var <- sd(disciplines_by_var$cum_var)
 
 disciplines_by_var <- disciplines_by_var |>
   mutate(group = case_when(
-    cum_var >= mean_var + sd_var ~ "high level of homology",
-    cum_var <= mean_var - sd_var ~ "low level of homology",
-    TRUE ~ "middleish level of homology"
+    cum_var >= mean_var + sd_var ~ "low level of autonomy",
+    cum_var <= mean_var - sd_var ~ "high level of autonomy",
+    TRUE ~ "middleish level of autonomy"
   ))
 
 wes_palette <- wes_palette("FantasticFox1", 3, type = "discrete")
-group_colors <- setNames(wes_palette, c("low level of homology", "middleish level of homology", "high level of homology"))
+group_colors <- setNames(wes_palette, c("high level of autonomy", "middleish level of autonomy", "low level of autonomy"))
 
 ggplot(disciplines_by_var, aes(x = reorder(freq_ford, cum_var), y = cum_var, fill = group)) +
   geom_col() +
@@ -169,6 +130,12 @@ ggplot(disciplines_by_var, aes(x = reorder(freq_ford, cum_var), y = cum_var, fil
   ) +
   theme_minimal(base_size = 10)
 ```
+
+\[text\]
+
+Yann's score of homology (cosine similarity between PC angles)
+
+![](images/Yann_Score_3_cosine_similarity-01.png)
 
 \[text\]
 
