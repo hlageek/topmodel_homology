@@ -664,7 +664,7 @@ ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, 
   coord_flip() +
   scale_fill_manual(values = group_colors) +
   labs(
-    title = "Cumulative explained variance",
+    title = "Cumulative standard deviation",
     x = "",
     y = "Cumulative standard deviation",
     fill = "Yann's score"
@@ -673,16 +673,8 @@ ggplot(disciplines_by_sdev, aes(x = reorder(freq_ford, cum_sdev), y = cum_sdev, 
 ```
 
 ```{r}
-params <- list(
-  disciplines_by_sdev = disciplines_by_sdev
-)
-quarto::quarto_render(here::here("chapter.qmd"), 
-execute_params = params,
-output_format = "pdf")
-```
-
-```{r}
 # Compute mean and SD of cumulative variance
+library(wesanderson)
 mean_var <- mean(disciplines_by_var$cum_var)
 sd_var <- sd(disciplines_by_var$cum_var)
 
@@ -706,8 +698,151 @@ ggplot(disciplines_by_var, aes(x = reorder(freq_ford, cum_var), y = cum_var, fil
   labs(
     title = "Cumulative explained variance by discipline",
     x = "",
-    y = "Cumulative variance (?? PC variances)",
+    y = "Cumulative variance (sum PC variances)",
     fill = "Level of homology"
   ) +
   theme_minimal(base_size = 10)
+```
+
+Make another test using cosine of angles
+
+```{r}
+sub_pca_enriched_test <- sub_pca_df |> 
+  mutate(
+    subcloud_center_coords = map(sub_pca_unscaled, ~ .x$center),
+    local_pc1_explained_var = map_dbl(sub_pca_unscaled, ~ .x$sdev[1]^2/sum(.x$sdev^2)),
+    local_pc2_explained_var = map_dbl(sub_pca_unscaled, ~ .x$sdev[2]^2/sum(.x$sdev^2)),
+    local_sdev = map(sub_pca_unscaled, ~ .x$sdev),
+    global_pc_names = map(sub_pca_unscaled, ~ rownames(.x$rotation)), 
+    local_pc_1_2_cum_explained_var = local_pc1_explained_var + local_pc2_explained_var,
+    loading_vector_on_local_PC1 = map(sub_pca_unscaled, ~ .x$rotation[, 1]),
+    loading_vector_on_local_PC2 = map(sub_pca_unscaled, ~ .x$rotation[, 2]),
+    loading_global_pc1_on_local_PC1 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC1", "PC1"]),
+    loading_global_pc1_on_local_PC2 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC1", "PC2"]),
+    loading_global_pc2_on_local_PC1 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC2", "PC1"]),
+    loading_global_pc2_on_local_PC2 = map_dbl(sub_pca_unscaled, ~ .x$rotation["global_PC2", "PC2"]),
+    combined_contribution_to_localPC1 = loading_global_pc1_on_local_PC1^2 + loading_global_pc2_on_local_PC1^2,
+    total_variance = map_dbl(sub_pca_unscaled, ~ sum(.x$sdev^2)),
+    disc_people = map(sub_pca_unscaled, ~ .x$x),
+    
+    # Calculate cosine similarity between global_PC1 (main PCA) and PC1 (sub-PCA)
+    cosine_similarity_pc1 = map_dbl(sub_pca_unscaled, ~{
+      global_pc1 <- .x$rotation["global_PC1", ]  # main PCA PC1
+      local_pc1 <- .x$rotation[, "PC1"]          # local PCA PC1
+      # Ensure the vectors are the same length
+      if(length(global_pc1) == length(local_pc1)) {
+        sum(global_pc1 * local_pc1) / (sqrt(sum(global_pc1^2)) * sqrt(sum(local_pc1^2)))
+      } else {
+        NA  # If the vectors don't match in length, return NA
+      }
+    }),
+
+    # Calculate cosine similarity between global_PC2 (main PCA) and PC2 (sub-PCA)
+    cosine_similarity_pc2 = map_dbl(sub_pca_unscaled, ~{
+      global_pc2 <- .x$rotation["global_PC2", ]  # main PCA PC2
+      local_pc2 <- .x$rotation[, "PC2"]          # local PCA PC2
+      # Ensure the vectors are the same length
+      if(length(global_pc2) == length(local_pc2)) {
+        sum(global_pc2 * local_pc2) / (sqrt(sum(global_pc2^2)) * sqrt(sum(local_pc2^2)))
+      } else {
+        NA  # If the vectors don't match in length, return NA
+      }
+    })
+  ) |> 
+  select(-sub_pca_unscaled)  # Remove sub_pca_unscaled after calculations
+
+# View the resulting dataframe with cosine similarity scores
+sub_pca_enriched_test$cosine_similarity_pc1
+```
+
+Plot PC1
+
+```{r}
+sub_pca_enriched_test <- sub_pca_enriched_test |> 
+  mutate(
+    # Calculate cosine similarity and take the absolute value
+    cosine_similarity_pc1 = abs(cosine_similarity_pc1),
+    cosine_similarity_pc2 = abs(cosine_similarity_pc2)
+  )
+
+# Combine the dataframes by 'freq_ford' (discipline names)
+combined_data <- disciplines_by_var %>%
+  left_join(sub_pca_enriched_test %>%
+              select(freq_ford, cosine_similarity_pc1, cosine_similarity_pc2), by = "freq_ford")
+
+# Now calculate the correlation between cumulative variance and cosine similarity
+cor_pc1 <- cor(combined_data$cum_var, combined_data$cosine_similarity_pc1, use = "complete.obs")
+cor_pc2 <- cor(combined_data$cum_var, combined_data$cosine_similarity_pc2, use = "complete.obs")
+
+# Print the results
+cat("Correlation between cumulative variance and cosine similarity (PC1):", cor_pc1, "\n")
+cat("Correlation between cumulative variance and cosine similarity (PC2):", cor_pc2, "\n")
+
+
+ggplot(sub_pca_enriched_test, aes(x = reorder(freq_ford, cosine_similarity_pc1), y = cosine_similarity_pc1)) +
+  geom_point() +  # Plot points
+  coord_flip() +
+  labs(
+    title = "cosine similarity PC1",
+    x = "discipline",
+    y = "cosine similarity"
+  ) +
+  theme_minimal()  # Minimal theme for a clean plot
+```
+
+PC2
+
+```{r}
+ggplot(sub_pca_enriched_test, aes(x = reorder(freq_ford, cosine_similarity_pc2), y = cosine_similarity_pc2)) +
+  geom_point() +  # Plot points
+  coord_flip() +
+  labs(
+    title = "cosine similarity PC2",
+    x = "discipline",
+    y = "cosine similarity"
+  ) +
+  theme_minimal()  # Minimal theme for a clean plot
+```
+
+PC1 and PC2
+
+```{r}
+#| fig-width: 8
+#| fig-height: 10
+#| echo: false
+#| warning: false
+#| message: false
+# Reorder the original data by cosine similarity of PC1
+sub_pca_enriched_test <- sub_pca_enriched_test %>%
+  mutate(freq_ford = reorder(freq_ford, cosine_similarity_pc1))
+
+# Now pivot the data into long format
+sub_pca_enriched_test_long <- sub_pca_enriched_test |> 
+  pivot_longer(cols = c(cosine_similarity_pc1, cosine_similarity_pc2),
+               names_to = "pc_type",
+               values_to = "cosine_similarity")
+
+summary(sub_pca_enriched_test_long$cosine_similarity)
+sub_pca_enriched_test_long <- na.omit(sub_pca_enriched_test_long)
+
+# Plot both PC1 and PC2 cosine similarities, ordered by cosine similarity of PC1
+ggplot(sub_pca_enriched_test_long, aes(x = freq_ford, y = cosine_similarity, color = pc_type)) +
+  geom_point() +  # Plot points
+  coord_flip() +
+  labs(
+    title = "Cosine Similarity of PC1 and PC2",
+    x = "Discipline",
+    y = "Cosine Similarity",
+    color = "Principal Component"
+  ) +
+  theme_minimal()  # Minimal theme for a clean plot
+```
+
+```{r}
+params <- list(
+  disciplines_by_sdev = disciplines_by_sdev
+)
+quarto::quarto_render(here::here("chapter.qmd"), 
+execute_params = params,
+output_format = "pdf")
 ```
