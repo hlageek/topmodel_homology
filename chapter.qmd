@@ -50,9 +50,9 @@ One elegant way to sort of deal with these consideration is to cross-fertilize t
 
 -   class-specific PCA
 
--   the Yann's score
+-   the Yann's score - actually it seems to me that this is a measure of how spread the sub-clouds are. So it is more a measure of relative autonomy to me. Very concentrated sub-clouds get low score, and highly spread get high score, regardless of the principal component angles.
 
-    What I think is Yann's score is a sum of standard deviations of the subcloud PCs (at some point we must drop the subcloud lingo, but for internal use, it is ok). Intuitively, it should measure how comfortable each discipline feels when spreading itself in the global space across its 42 dimensions.
+    "What I think is Yann's score is a sum of standard deviations of the subcloud PCs (at some point we must drop the subcloud lingo, but for internal use, it is ok). Intuitively, it should measure how comfortable each discipline feels when spreading itself in the global space across its 42 dimensions."
 
     standard deviations are the square roots of the eigenvalues (how much variance is explained by each principal component). Summing sd does not seem correct, I think we should sum the variances for measuring the total variability.
 
