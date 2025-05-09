@@ -48,7 +48,7 @@ Topic modeling is a suite of information retrieval algorithms that has grown pop
 
 -   the space of possible position-takings
 
-### Challenges for representing position-takings 
+### Challenges for representing position-takings
 
 -   large volumes of text
 -   complexity of capturing meanings in language
@@ -60,7 +60,7 @@ Topic modeling is a suite of information retrieval algorithms that has grown pop
 -   probabilistic approach
 -   our approach
 
-#### Sociological relevance of topic modeling 
+#### Sociological relevance of topic modeling
 
 \[this is embedded in the previous point, but must be a transition to the results. And also comes again at the end as a discussion/conclusion\]
 
