@@ -131,16 +131,17 @@ The method to produce the global map of science can be summarized as a sequentia
 
 Intuitively, we conceive of the science's linguistic market as a collection of semantic elements -topics - to which each publication contributes through its distinct topic portfolio ($M_1$).
 As each publication is classified into a discipline, disciplines have their own average portfolio ($M_2$), or so do authors ($M_5$). 
-If we remove the compositional constraint on probabilistic distributions and make topics our unit of analysis ($M_3$), we can decompose the topic ratios in disciplines into an orthogonal system of topic oppositions ($M_3$).
-As a result, the projected portfolios of individual authors corresponds to their epistemological position-takings in the space of topics and disciplines.
+If we remove the constant sum constraint on probabilistic distributions [@Aitchison1983] and make topics our unit of analysis ($M_3$), we can decompose the topic ratios in disciplines into an orthogonal system of topic oppositions ($M_4$).
+As a result, the projected portfolios of individual authors ($M_6$) corresponds to their epistemological position-takings in the space of topics and disciplines.
 
-For subsequent analyses, it is crucial to note that the non-standard and supplementary nature of the projection implies that authors' scores on the principal components do not reflect their direct contributions to axes formation.
-The non-standard character means that instead of using the rotation matrix of the PCA, the projection takes places via matrix multiplication $M_5M_4$ and thus yields for each author their barycenter directly in the system of topic scores.
-The PCA determines only disciplinary means (it pulls authors frequently publishing in the same discipline together), not the dispersion of author portfolios around those means.
+For subsequent analyses, it is crucial to note that the non-standard and supplementary nature of the projection implies that authors' scores on the principal components do not reflect their contribution to axes formation.
+The non-standard character means that instead of using the rotation matrix of the PCA, the projection takes places via matrix multiplication $M_5M_4$ and thus yields for each author their barycenter directly in the space of topic scores.
+The PCA determines only disciplinary means of topics, not the dispersion of author portfolios around those means.
+Authors frequently publishing in the same discipline - or on the same topics - are pulled together in this space but their relative placement is derived independently.
 Consequently, the variance in authors' scores remains unexplained by the underlying principal component analysis.
 Authors influence this space solely through (co-)authoring and classifying publications used in creating the topic model and its disciplinary aggregation.
 This influence can be quantified as a ratio of an author's publications to all publications within the model or within a discipline.
-Although prolific authors with extensive careers exert greater influence, this remains a small fraction due to the large denominator value; however, it aligns with their increased role in defining disciplinary topics.
+Although prolific authors with extensive careers exert greater influence, this remains a small fraction due to the large denominator value; however, it aligns with the increased role of such authors in defining disciplinary topics.
 We take advantage of these considerations when analyzing homologies between oppositions of topics within disciplines and science as a whole.
 
 
