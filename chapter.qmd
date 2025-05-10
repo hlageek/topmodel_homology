@@ -8,8 +8,6 @@ params:
 
 ## Abstract
 
-This chapter aims to analyze homologies between disciplinary spaces of position-takings within the global framework of virtually all research funded in the Czech Republic over two decades. Our objectives are threefold: *first*, we show how topic modeling suits the homology framework by enabling comparisons of oppositional structures based on topic distributions, with reference to the global space of science as constructed by the donut. *Second*, we emphasize that topic models are of crucial interest when working on semantic structures, especially when combined with geometrical data analysis-in this case, principal component analysis (PCA). To this end, we propose a novel approach, derived from class-specific multiple correspondence analysis, to shed light on the specific distribution of topics-and hence the structure-of disciplinary spaces of position-takings, with reference to the cognitive structure of a global space of science. *Third*, our methodological and empirical work emphasizes the challenges of dealing with partiality and levels of abstraction. The focus on modelizing a distribution of topics under the form of a space of position-takings also raises the question of the relationship between homology and the relative autonomy of disciplines. To venture into these crucial questions for field theory, this chapter engages with homologies by proposing a methodologically-driven reflection with evidence from research topics as spaces of position-takings.
-
 This chapter aims to analyze homologies between disciplinary spaces of position-takings within the global framework of virtually all research funded in the Czech Republic over two decades.
 Our objectives are threefold: *first*, we show how topic modeling suits the homology framework by enabling comparisons of oppositional structures based on topic distributions, with reference to the global space of science as constructed by the donut. 
 Second*, we emphasize that topic models are of crucial interest when working on semantic structures, especially when combined with geometrical data analysis-in this case, principal component analysis (PCA).
@@ -120,7 +118,31 @@ This approach has been further developed to explore sub-fields specificity by in
 
 For our inquiry, we re-use a dataset released and described by Hladík and Renisio [@Hladik2025].
 It is based on administrative records of one million publications from Czech research institutions produced over two decades, comprehensively covering all disciplines, publication formats (papers, chapters, books) and exhaustively representing the national scientific field.
-The dataset includes a large topic model of 838428 abstracts and annotations, which was processed with a TopSBM algorithm based on hierarchical stochastic block modeling of a 2-mode network of words and documents [@Gerlach2018]
+The dataset includes a large topic model of 838428 abstracts and annotations, which was processed with a TopSBM algorithm based on hierarchical stochastic block modeling of a 2-mode network of words and documents [@Gerlach2018].
+
+The method to produce the global map of science can be summarized as a sequential treatment of six interrelated matrices, denoted as $M_1$ to $M_6$, which can be described as follows:
+
+1. $M_1$: Initial document-topic matrix obtained from the topic model. 
+2. $M_2$: Matrix of discipline-topic portfolios obtained by averaging $M_1$ over disciplines.
+3. $M_3$: Matrix derived from $M2$​ via compositional transformation (CLR), scaling, and transposition, serving as input for PCA..
+4. $M_4$: Principal component scores of topics obtained by principal component analysis of $M_3$.
+5. $M_5$: Matrix of individual-topic portfolios obtained by averaging $M_1$ over persons.
+6. $M_6$: Matrix of persons' coordinates after supplementary projection of $M_5$ onto $M_4$.
+
+Intuitively, we conceive of the science's linguistic market as a collection of semantic elements -topics - to which each publication contributes through its distinct topic portfolio ($M_1$).
+As each publication is classified into a discipline, disciplines have their own average portfolio ($M_2$), or so do authors ($M_5$). 
+If we remove the compositional constraint on probabilistic distributions and make topics our unit of analysis ($M_3$), we can decompose the topic ratios in disciplines into an orthogonal system of topic oppositions ($M_3$).
+As a result, the projected portfolios of individual authors corresponds to their epistemological position-takings in the space of topics and disciplines.
+
+For subsequent analyses, it is crucial to note that the non-standard and supplementary nature of the projection implies that authors' scores on the principal components do not reflect their direct contributions to axes formation.
+The non-standard character means that instead of using the rotation matrix of the PCA, the projection takes places via matrix multiplication $M_5M_4$ and thus yields for each author their barycenter directly in the system of topic scores.
+The PCA determines only disciplinary means (it pulls authors frequently publishing in the same discipline together), not the dispersion of author portfolios around those means.
+Consequently, the variance in authors' scores remains unexplained by the underlying principal component analysis.
+Authors influence this space solely through (co-)authoring and classifying publications used in creating the topic model and its disciplinary aggregation.
+This influence can be quantified as a ratio of an author's publications to all publications within the model or within a discipline.
+Although prolific authors with extensive careers exert greater influence, this remains a small fraction due to the large denominator value; however, it aligns with their increased role in defining disciplinary topics.
+We take advantage of these considerations when analyzing homologies between oppositions of topics within disciplines and science as a whole.
+
 
 -   class-specific PCA
 
