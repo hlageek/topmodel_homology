@@ -125,25 +125,41 @@ The method to produce the global map of science can be summarized as a sequentia
 1. $M_1$: Initial document-topic matrix obtained from the topic model. 
 2. $M_2$: Matrix of discipline-topic portfolios obtained by averaging $M_1$ over disciplines.
 3. $M_3$: Matrix derived from $M2$​ via compositional transformation (CLR), scaling, and transposition, serving as input for PCA..
-4. $M_4$: Principal component scores of topics obtained by principal component analysis of $M_3$.
+4. $M_4$: Principal component scores of topics obtained by PCA of $M_3$.
 5. $M_5$: Matrix of individual-topic portfolios obtained by averaging $M_1$ over persons.
-6. $M_6$: Matrix of persons' coordinates after supplementary projection of $M_5$ onto $M_4$.
+6. $M_6$: Matrix of persons' coordinates after a projection of $M_5$ onto $M_4$.
 
 Intuitively, we conceive of the science's linguistic market as a collection of semantic elements -topics - to which each publication contributes through its distinct topic portfolio ($M_1$).
-As each publication is classified into a discipline, disciplines have their own average portfolio ($M_2$), or so do authors ($M_5$). 
-If we remove the constant sum constraint on probabilistic distributions [@Aitchison1983] and make topics our unit of analysis ($M_3$), we can decompose the topic ratios in disciplines into an orthogonal system of topic oppositions ($M_4$).
+As each publication is classified into a discipline, disciplines have their own average portfolio ($M_2$), and so do authors ($M_5$). 
+If we remove the constant sum constraint on probabilistic distributions [@Aitchison1983] and make topics our unit of analysis ($M_3$), we can decompose the topic ratios in disciplines into an orthogonal system of topic oppositions via PCA ($M_4$).
 As a result, the projected portfolios of individual authors ($M_6$) corresponds to their epistemological position-takings in the space of topics and disciplines.
 
 For subsequent analyses, it is crucial to note that the non-standard and supplementary nature of the projection implies that authors' scores on the principal components do not reflect their contribution to axes formation.
 The non-standard character means that instead of using the rotation matrix of the PCA, the projection takes places via matrix multiplication $M_5M_4$ and thus yields for each author their barycenter directly in the space of topic scores.
 The PCA determines only disciplinary means of topics, not the dispersion of author portfolios around those means.
 Authors frequently publishing in the same discipline - or on the same topics - are pulled together in this space but their relative placement is derived independently.
-Consequently, the variance in authors' scores remains unexplained by the underlying principal component analysis.
+Consequently, the variance in authors' scores remains unaffected by the underlying principal component analysis.
 Authors influence this space solely through (co-)authoring and classifying publications used in creating the topic model and its disciplinary aggregation.
 This influence can be quantified as a ratio of an author's publications to all publications within the model or within a discipline.
-Although prolific authors with extensive careers exert greater influence, this remains a small fraction due to the large denominator value; however, it aligns with the increased role of such authors in defining disciplinary topics.
-We take advantage of these considerations when analyzing homologies between oppositions of topics within disciplines and science as a whole.
+Although prolific authors with extensive careers exert greater influence, this remains a small fraction due to the large denominator value; however, the differential effect aligns with the increased role of such authors in defining disciplinary topics.
 
+We take advantage of the above considerations when analyzing homologies between oppositions of topics within disciplines and science as a whole.
+The methodological inspiration comes from class-specific multiple correspondence analysis [@LeRoux2004; @Lebaron2019; @Hjellbrekke2022], which is a procedure to examine the subclouds within the overall cloud of individuals by conducting second-order unscaled singular value decomposition on the subcloud coordinates derived by the first-order MCA.
+Because class-specific MCA preserves the distances of the original space, it can compare the geometries of the space and its subspaces.
+However, class-specific MCA rests on the strong assumption that the same oppositions that structure the overall cloud are also what matters to the individuals in the subcloud.
+In case of nested fields, which is exactly the case of disciplines in science, the extent to which the intellectual stakes of a discipline align with the intellectual stakes of science as a whole is an empirical question of the discipline's relative epistemological autonomy.
+Our approach borrows the basic technique - i.e., running unscaled PCA on the subsets of individuals and comparing the geometries of the global and local spaces - from class-specific MCA, but it severely relaxes the assumption about the relevance of original axes, owing to the fact that it analyzes projected scores, not the original scores.
+
+To analyze homologies between the scientific field and disciplinary subfields, authors are assigned to the disciplines in which they most frequently publish.
+The scores of authors within a discipline in the global space are then subjected to PCA.
+As a measure of each discipline's relative epistemological autonomy, we calculate the sum of variances of the local PCA axes. 
+A high value indicates that the global space is well-expressed among individuals within a discipline, suggesting low epistemological autonomy. 
+Such disciplines are more widely spread in the global space and resemble scientific microcosms where principles separating one discipline from another also separate individuals within that discipline.
+Conversely, low value suggests that the global scores represent the subset poorly, which results in a more concentrated configuration of individuals.
+Such disciplines likely structure relative distances between topics differently than in the global space, marking their relatively high autonomy in defining specific intellectual milieu.
+
+We complement this measure of disciplinary autonomy with qualitative interpretation of topics associated with 
+The 
 
 -   class-specific PCA
 
